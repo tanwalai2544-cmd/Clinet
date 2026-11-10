@@ -6,7 +6,6 @@
     <title>Pet's Station B2B • Mobile Wholesale Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: 'Sarabun', sans-serif; -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -99,6 +98,9 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="openStaffReportModal()" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-2xl text-sm font-bold border border-white/20" title="ประวัติการสั่งซื้อ">📦</button>
+                    <button onclick="openBackorderModal()" class="bg-amber-500/80 hover:bg-amber-500 text-white p-2.5 rounded-2xl text-sm font-bold border border-white/20 relative" title="สินค้าคงค้างส่ง">
+                        ⏳ <span id="backorder-badge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+                    </button>
                     <button onclick="openHoldBillModal()" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-2xl text-sm font-bold border border-white/20" title="ตะกร้าพัก">📌</button>
                     <button onclick="handleLogout()" class="bg-black/30 text-white p-2.5 rounded-2xl text-sm font-bold" title="ออก">🚪</button>
                 </div>
@@ -204,6 +206,16 @@
         </div>
     </div>
 
+    <!-- Modal: สินค้าคงค้างส่ง (Backorder) -->
+    <div id="backorder-modal" class="hidden fixed inset-0 bg-black/80 z-[140] flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl p-5 relative flex flex-col max-h-[90vh]">
+            <button onclick="closeBackorderModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
+            <h3 class="text-base font-bold text-amber-700 mb-2">⏳ รายการสินค้าคงค้างส่ง (Backorder)</h3>
+            <p class="text-xs text-gray-500 mb-3">เมื่อนำเข้าตะกร้าในครั้งถัดไป รายการนี้จะแสดงราคาตามจริง แต่ยอดสุทธิเป็น 0 บาท พร้อมสถานะจ่ายแล้ว</p>
+            <div class="overflow-y-auto flex-grow rounded-2xl border border-gray-200 divide-y" id="backorderListContainer"></div>
+        </div>
+    </div>
+
     <!-- Modal เลือกร้านค้า + เพิ่มร้านค้าใหม่ -->
     <div id="member-modal" class="hidden fixed inset-0 bg-black/80 z-[130] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 relative flex flex-col max-h-[90vh]">
@@ -229,7 +241,7 @@
         </div>
     </div>
 
-    <!-- ================= Checkout Modal (ส่วนชำระเงินต้นฉบับที่ดึงมาผสาน) ================= -->
+    <!-- ================= Checkout Modal (ชำระเงิน) ================= -->
     <div id="checkout-modal" class="hidden fixed inset-0 bg-black/80 z-[150] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border border-red-200 p-6 relative max-h-[95vh] overflow-y-auto">
             <button onclick="closeCheckoutModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 font-bold text-xl bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
@@ -237,7 +249,7 @@
 
             <div class="space-y-4 text-base">
                 <div class="flex justify-between items-center text-lg">
-                    <span class="text-gray-600 font-semibold">ยอดรวมสินค้า (ราคาค้าส่ง)</span>
+                    <span class="text-gray-600 font-semibold">ยอดรวมสินค้า (ไม่รวมสินค้าคงค้างที่จ่ายแล้ว)</span>
                     <span id="pay-modal-total" class="font-bold text-gray-900 text-xl">0.00</span>
                 </div>
                 
@@ -437,9 +449,6 @@
         </div>
     </div>
 
-    <div id="pdf-printable-area" class="hidden fixed -left-[9999px] top-0 bg-white p-8 text-sm text-gray-900" style="width: 210mm;"></div>
-
-
     <!-- ================= Script ควบคุมระบบ ================= -->
     <script>
         let registeredUsers = [{ email: "Pornpinp@yahool.com", pass: "1234", name: "คู่ค้าส่งออนไลน์" }];
@@ -449,6 +458,7 @@
         let currentSortOrder = 'none';
         let selectedMemberData = null;
         let completedSalesBills = [];
+        let backorderList = []; 
         let isMixedPaymentValid = true;
         let currentCheckoutSubtotal = 0;
         let salesTaxIdCounters = {};
@@ -669,54 +679,83 @@
             });
         }
 
-        function addCatalogProductToCart(code) {
+        // ================= เพิ่มสินค้าลงตะกร้า =================
+        function addCatalogProductToCart(code, overrideQty = null, overrideIsBackorder = false, overridePrice = null) {
             const product = productsFromSheet.find(p => p.code === code);
             if(!product) return;
 
-            const unitSelect = document.getElementById(`catalog-unit-${code}`);
-            const unitIdx = parseInt(unitSelect.value) || 0;
-            const selectedUnitObj = product.units[unitIdx];
+            let selectedUnitObj, qty;
 
-            const qtyInput = document.getElementById(`catalog-qty-${code}`);
-            const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+            if (overrideQty !== null) {
+                // ดึงจากรายการคงค้างส่ง (ตั้งค่าให้ยอดสุทธิในตะกร้าเป็น 0 บาท เพราะจ่ายเงินแล้ว)
+                const unitObj = product.units.find(u => u.unitName === overrideIsBackorder.unit);
+                selectedUnitObj = unitObj || product.units[0];
+                qty = overrideQty;
 
-            const stockAvailable = selectedUnitObj.stock;
-            const normalQty = Math.min(qty, stockAvailable);
-            const backorderQty = qty > stockAvailable ? qty - stockAvailable : 0;
-
-            if (normalQty > 0) {
-                const uniqueName = `${product.name} (${selectedUnitObj.unitName})`;
-                const ex = cartItems.find(i => i.name === uniqueName && !i.isBackorder);
+                const uniqueName = `${product.name} (${selectedUnitObj.unitName}) [สินค้าคงค้างส่ง]`;
+                const ex = cartItems.find(i => i.name === uniqueName && i.isBackorder);
                 if(ex) {
-                    ex.qty += normalQty;
+                    ex.qty += qty;
                 } else {
                     cartItems.push({
                         code: product.code,
                         name: uniqueName,
                         unit: selectedUnitObj.unitName,
-                        price: selectedUnitObj.price,
-                        qty: normalQty,
-                        isBackorder: false
+                        price: overridePrice !== null ? overridePrice : selectedUnitObj.price, // แสดงราคาตามจริง
+                        qty: qty,
+                        isBackorder: true,
+                        paidAlready: true // สถานะจ่ายแล้ว ยอดรวมเป็น 0
                     });
                 }
-            }
+            } else {
+                // สั่งซื้อปกติจากแคตตาล็อก
+                const unitSelect = document.getElementById(`catalog-unit-${code}`);
+                const unitIdx = parseInt(unitSelect.value) || 0;
+                selectedUnitObj = product.units[unitIdx];
 
-            if (backorderQty > 0) {
-                const boName = `${product.name} (${selectedUnitObj.unitName}) [สินค้าคงค้างส่ง]`;
-                const exBo = cartItems.find(i => i.name === boName && i.isBackorder);
-                if(exBo) {
-                    exBo.qty += backorderQty;
-                } else {
-                    cartItems.push({
-                        code: product.code,
-                        name: boName,
-                        unit: selectedUnitObj.unitName,
-                        price: 0,
-                        qty: backorderQty,
-                        isBackorder: true
-                    });
+                const qtyInput = document.getElementById(`catalog-qty-${code}`);
+                qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+
+                const stockAvailable = selectedUnitObj.stock;
+                const normalQty = Math.min(qty, stockAvailable);
+                const backorderQty = qty > stockAvailable ? qty - stockAvailable : 0;
+
+                if (normalQty > 0) {
+                    const uniqueName = `${product.name} (${selectedUnitObj.unitName})`;
+                    const ex = cartItems.find(i => i.name === uniqueName && !i.isBackorder);
+                    if(ex) {
+                        ex.qty += normalQty;
+                    } else {
+                        cartItems.push({
+                            code: product.code,
+                            name: uniqueName,
+                            unit: selectedUnitObj.unitName,
+                            price: selectedUnitObj.price,
+                            qty: normalQty,
+                            isBackorder: false,
+                            paidAlready: false
+                        });
+                    }
                 }
-                alert(`⚠️ สินค้า "${product.name}" มีสต็อกเพียง ${stockAvailable} ${selectedUnitObj.unitName}\n- ระบบได้เพิ่มรายการปกติ ${normalQty} หน่วย\n- และเพิ่มรายการ "สินค้าคงค้างส่ง" ${backorderQty} หน่วย (ราคา 0 บาท) ลงในตะกร้าเรียบร้อยแล้วค่ะ`);
+
+                if (backorderQty > 0) {
+                    const boName = `${product.name} (${selectedUnitObj.unitName}) [สินค้าคงค้างส่ง]`;
+                    const exBo = cartItems.find(i => i.name === boName && i.isBackorder);
+                    if(exBo) {
+                        exBo.qty += backorderQty;
+                    } else {
+                        cartItems.push({
+                            code: product.code,
+                            name: boName,
+                            unit: selectedUnitObj.unitName,
+                            price: selectedUnitObj.price,
+                            qty: backorderQty,
+                            isBackorder: true,
+                            paidAlready: false
+                        });
+                    }
+                    alert(`⚠️ สินค้า "${product.name}" สมีสต็อกพร้อมส่ง ${stockAvailable} ${selectedUnitObj.unitName}\n- เพิ่มส่วนพร้อมส่งลงตะกร้า ${normalQty} หน่วย\n- และแยกส่วนเกิน ${backorderQty} หน่วย เป็น "สินค้าคงค้างส่ง" เรียบร้อยครับ`);
+                }
             }
 
             renderCart();
@@ -732,26 +771,24 @@
         function removeCartItem(i) { cartItems.splice(i, 1); renderCart(); }
         function clearCart() { cartItems = []; renderCart(); }
 
-        // ================= ฟังก์ชันส่วนชำระเงินต้นฉบับ =================
+        // ================= เปิดหน้าต่างชำระเงิน =================
         function openCheckoutModal() {
             if (cartItems.length === 0) {
                 alert('กรุณาเลือกสินค้าใส่ตะกร้าก่อนดำเนินการชำระเงิน');
                 return;
             }
-            let subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            // คำนวณเฉพาะสินค้าปกติ (ไม่นับสินค้าคงค้างที่จ่ายเงินแล้ว)
+            let subtotal = cartItems.reduce((sum, item) => sum + (item.paidAlready ? 0 : (item.price * item.qty)), 0);
             currentCheckoutSubtotal = subtotal;
 
             document.getElementById('pay-modal-total').innerText = subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) + ' ฿';
             
             let defaultDiscount = (subtotal * 2) / 100;
             document.getElementById('pay-modal-extra-discount').value = defaultDiscount.toFixed(2);
-            
             document.getElementById('pay-modal-vat-checkbox').checked = true;
 
             const radios = document.getElementsByName('payMethod');
-            for(let r of radios) {
-                if(r.value === 'transfer') r.checked = true;
-            }
+            for(let r of radios) { if(r.value === 'transfer') r.checked = true; }
 
             document.getElementById('print-option-select').value = 'noprint';
 
@@ -873,33 +910,36 @@
                     slipWarning.innerText = "✅ แนบหลักฐานการชำระเงินเรียบร้อยแล้ว";
                     slipWarning.className = "text-[11px] text-emerald-700 font-bold";
                 } else {
-                    slipWarning.innerText = "⚠️ กรุณาแนบสลิปหลักฐานการชำระเงิน มิฉะนั้นจะไม่สามารถยืนยันการจ่ายเงินได้";
+                    slipWarning.innerText = "⚠️ กรุณาแนบสลิปหลักฐานการชำระเงิน";
                     slipWarning.className = "text-[11px] text-red-600 font-bold";
                 }
             }
         }
 
+        // ================= ยืนยันการชำระเงิน =================
         function confirmCheckout() {
             const selectedMethod = document.querySelector('input[name="payMethod"]:checked').value;
             const finalNetStr = document.getElementById('pay-modal-net').innerText.replace(/,/g, '').replace(' ฿', '');
             const finalNet = parseFloat(finalNetStr) || 0;
 
-            if (selectedMethod === 'mixed') {
-                const cashPart = parseFloat(document.getElementById('pay-mixed-cash').value) || 0;
-                const transferPart = parseFloat(document.getElementById('pay-mixed-transfer').value) || 0;
-                if ((cashPart + transferPart) < finalNet) {
-                    alert('⚠️ ยอดเงินชำระแบบผสมยังไม่ครบตามยอดสุทธิ');
-                    return;
+            if (currentCheckoutSubtotal > 0) {
+                if (selectedMethod === 'mixed') {
+                    const cashPart = parseFloat(document.getElementById('pay-mixed-cash').value) || 0;
+                    const transferPart = parseFloat(document.getElementById('pay-mixed-transfer').value) || 0;
+                    if ((cashPart + transferPart) < finalNet) {
+                        alert('⚠️ ยอดเงินชำระแบบผสมยังไม่ครบตามยอดสุทธิ');
+                        return;
+                    }
                 }
-            }
 
-            if (selectedMethod !== 'cash' && selectedMethod !== 'debt') {
-                const slipInput = document.getElementById('payment-slip-file');
-                const mixedSlipInput = document.getElementById('mixed-slip-file');
-                const hasAnySlip = (slipInput && slipInput.files.length > 0) || (mixedSlipInput && mixedSlipInput.files.length > 0);
-                if (!hasAnySlip) {
-                    alert('⚠️ กรุณาแนบหลักฐานสลิปโอนเงินก่อนยืนยันการชำระเงิน');
-                    return;
+                if (selectedMethod !== 'cash' && selectedMethod !== 'debt') {
+                    const slipInput = document.getElementById('payment-slip-file');
+                    const mixedSlipInput = document.getElementById('mixed-slip-file');
+                    const hasAnySlip = (slipInput && slipInput.files.length > 0) || (mixedSlipInput && mixedSlipInput.files.length > 0);
+                    if (!hasAnySlip) {
+                        alert('⚠️ กรุณาแนบหลักฐานสลิปโอนเงินก่อนยืนยันการชำระเงิน');
+                        return;
+                    }
                 }
             }
 
@@ -914,6 +954,23 @@
 
             let totalCartDiscount = cartItems.reduce((acc, item) => acc + (item.isBackorder ? 0 : 0), 0);
 
+            // แยกเฉพาะสินค้าเกินสต็อก (ที่ไม่ใช่รายการที่จ่ายแล้ว) ไปเก็บเข้า Backorder
+            cartItems.forEach(item => {
+                if (item.isBackorder && !item.paidAlready) {
+                    backorderList.push({
+                        code: item.code,
+                        name: item.name.replace(' [สินค้าคงค้างส่ง]', ''),
+                        unit: item.unit,
+                        price: item.price,
+                        qty: item.qty,
+                        isBackorder: true,
+                        orderId: generatedOrderId,
+                        date: now.toLocaleDateString('th-TH')
+                    });
+                }
+            });
+
+            // สร้างบิลประวัติการขาย
             let lastTransactionReceiptData = {
                 date: now.toLocaleDateString('th-TH'),
                 time: now.toLocaleTimeString('th-TH'),
@@ -931,52 +988,66 @@
             };
 
             completedSalesBills.unshift(lastTransactionReceiptData);
+            updateBackorderBadge();
             closeCheckoutModal();
             clearCart();
 
-            const printOpt = document.getElementById('print-option-select').value;
-            if (printOpt === 'print') {
-                openReceiptModal(lastTransactionReceiptData);
-            } else {
-                alert(`✅ ส่งคำสั่งซื้อสำเร็จเรียบร้อย!\n- เลขที่คำสั่งซื้อ: ${generatedOrderId}\n- ยอดชำระ: ${finalNet.toLocaleString()} บาท`);
-            }
+            alert(`✅ ทำรายการสำเร็จเรียบร้อย!\n- เลขที่คำสั่งซื้อ: ${generatedOrderId}\n- ยอดสุทธิ: ${finalNet.toLocaleString()} บาท`);
         }
 
-        function openReceiptModal(data) {
-            document.getElementById('rec-tax-id').innerText = data.taxId;
-            document.getElementById('rec-date').innerText = data.date;
-            document.getElementById('rec-time').innerText = data.time;
-            document.getElementById('rec-member').innerText = data.member;
-            document.getElementById('rec-subtotal').innerText = data.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) + ' ฿';
-            document.getElementById('rec-extra-disc').innerText = '-' + data.extraDiscount.toLocaleString('en-US', { minimumFractionDigits: 2 }) + ' ฿';
-            document.getElementById('rec-vat').innerText = data.vat.toLocaleString('en-US', { minimumFractionDigits: 2 }) + ' ฿';
-            document.getElementById('rec-net').innerText = data.net.toLocaleString('en-US', { minimumFractionDigits: 2 }) + ' ฿';
-            
-            const methodMap = { transfer: 'โอนธนาคาร', cash: 'เงินสด', debt: 'วางบิล', qr: 'QR PromptPay', mixed: 'โอนผสมสด' };
-            document.getElementById('rec-pay-method').innerText = methodMap[data.payMethod] || data.payMethod;
+        // ================= จัดการเมนูสินค้าคงค้างส่ง (Backorder) =================
+        function openBackorderModal() {
+            document.getElementById('backorder-modal').classList.remove('hidden');
+            renderBackorderList();
+        }
 
-            const slipInfoElem = document.getElementById('rec-slip-info');
-            if (data.hasSlip) slipInfoElem.classList.remove('hidden');
-            else slipInfoElem.classList.add('hidden');
+        function closeBackorderModal() {
+            document.getElementById('backorder-modal').classList.add('hidden');
+        }
 
-            const noteWrapper = document.getElementById('rec-note-wrapper');
-            if (data.note) noteWrapper.innerText = data.note;
-
-            const itemsContainer = document.getElementById('rec-items-container');
-            itemsContainer.innerHTML = '';
-            data.items.forEach((item, idx) => {
-                let sum = (item.price * item.qty);
-                itemsContainer.innerHTML += `
-                    <tr>
-                        <td class="p-2 border text-center">${idx + 1}</td>
-                        <td class="p-2 border font-semibold">${item.name}</td>
-                        <td class="p-2 border text-center">${item.qty} ${item.unit}</td>
-                        <td class="p-2 border text-right">${item.price.toLocaleString()}</td>
-                        <td class="p-2 border text-right font-bold">${sum.toLocaleString()}</td>
-                    </tr>
+        function renderBackorderList() {
+            const container = document.getElementById('backorderListContainer');
+            container.innerHTML = '';
+            if (backorderList.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-gray-400 text-xs">ไม่มีรายการสินค้าคงค้างส่งในระบบ</div>`;
+                return;
+            }
+            backorderList.forEach((item, idx) => {
+                let itemTotal = item.price * item.qty;
+                container.innerHTML += `
+                    <div class="p-3.5 flex justify-between items-center text-xs">
+                        <div>
+                            <div class="font-bold text-gray-900">${item.name} (${item.unit})</div>
+                            <div class="text-[11px] text-gray-500">อ้างอิงบิล: <span class="font-mono text-red-600">${item.orderId}</span> | จำนวน: <span class="font-bold text-amber-700">${item.qty} ${item.unit}</span> | ราคาจริง: <span class="font-bold text-red-600">${itemTotal.toLocaleString()} ฿</span></div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="recallBackorderItem(${idx})" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-2 rounded-xl shadow">＋ นำเข้าตะกร้า (จ่ายแล้ว)</button>
+                            <button onclick="removeBackorderItem(${idx})" class="text-gray-400 hover:text-red-600 font-bold p-1">✕</button>
+                        </div>
+                    </div>
                 `;
             });
-            document.getElementById('receipt-modal').classList.remove('hidden');
+        }
+
+        function recallBackorderItem(idx) {
+            const item = backorderList[idx];
+            addCatalogProductToCart(item.code, item.qty, item, item.price);
+            backorderList.splice(idx, 1);
+            updateBackorderBadge();
+            renderBackorderList();
+            closeBackorderModal();
+            alert('✅ นำสินค้าคงค้างส่งกลับลงตะกร้า (แสดงราคาจริงแต่ยอดสุทธิเป็น 0 บาท / สถานะจ่ายแล้ว) เรียบร้อยครับ');
+        }
+
+        function removeBackorderItem(idx) {
+            backorderList.splice(idx, 1);
+            updateBackorderBadge();
+            renderBackorderList();
+        }
+
+        function updateBackorderBadge() {
+            const badge = document.getElementById('backorder-badge');
+            if(badge) badge.innerText = backorderList.length;
         }
 
         function closeReceiptModal() { document.getElementById('receipt-modal').classList.add('hidden'); }
@@ -991,13 +1062,18 @@
                 itemsHtml = `<p class="text-center py-6 text-gray-400 text-xs font-medium">ยังไม่มีสินค้าในตะกร้าของคุณ</p>`;
             } else {
                 cartItems.forEach((item, idx) => {
-                    let sum = item.price * item.qty;
-                    total += sum; 
                     totalQty += item.qty;
+                    let itemDisplaySum = 0;
 
-                    let badgeHtml = item.isBackorder ? 
-                        `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md block mt-0.5">📦 สินค้าคงค้างส่ง (ราคา 0 บาท)</span>` : 
-                        `<span class="text-red-600 font-bold mt-0.5 block">${sum.toLocaleString()} ฿ (${item.unit})</span>`;
+                    let badgeHtml = '';
+                    if (item.paidAlready) {
+                        itemDisplaySum = 0; // ยอดสุทธิในบิลเป็น 0 บาท
+                        badgeHtml = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-md block mt-0.5">✅ จ่ายแล้ว [สินค้าคงค้าง] (ราคาจริง: ${ (item.price * item.qty).toLocaleString() }฿ ➡️ คิดเงิน: 0฿)</span>`;
+                    } else {
+                        itemDisplaySum = item.price * item.qty;
+                        total += itemDisplaySum; // บวกเข้ายอดรวมเฉพาะสินค้าที่ยังไม่จ่าย
+                        badgeHtml = `<span class="text-red-600 font-bold mt-0.5 block">${itemDisplaySum.toLocaleString()} ฿ (${item.unit})</span>`;
+                    }
 
                     itemsHtml += `
                         <div class="border rounded-2xl p-3 flex justify-between items-center bg-gray-50/80 text-xs shadow-sm">
@@ -1044,7 +1120,7 @@
                         <span class="text-gray-900 text-sm">${totalQty} หน่วย</span>
                     </div>
                     <div class="flex justify-between text-gray-600 font-bold">
-                        <span>ส่วนลดโปรโมชั่น (2% ล็อกอัตโนมัติ):</span>
+                        <span>ส่วนลดโปรโมชั่น (2%):</span>
                         <span class="text-red-600 text-sm">${discount.toFixed(2)} ฿</span>
                     </div>
                     <div class="flex justify-between items-center text-base font-black border-t pt-2 mt-1">
