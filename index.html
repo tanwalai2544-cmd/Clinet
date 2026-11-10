@@ -102,10 +102,10 @@
             </div>
         </header>
 
-        <!-- ปรับโครงสร้างหลักให้แบ่งเป็น 2 คอลัมน์ (ซ้าย: แคตตาล็อก, ขวา: ตะกร้าสินค้าออนไลน์) บนหน้าจอขนาดกลางขึ้นไป -->
+        <!-- จัดเลย์เอาต์แบ่งหน้าจอเป็น 2 ฝั่ง (ซ้าย: แคตตาล็อก, ขวา: ตะกร้าสินค้าออนไลน์ทั้งก้อน) -->
         <main class="w-full p-3 sm:p-5 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-5 max-w-7xl mx-auto">
             
-            <!-- ฝั่งซ้าย: แคตตาล็อกสินค้า (กินพื้นที่ 7 ส่วน) -->
+            <!-- ฝั่งซ้าย: แคตตาล็อกสินค้า (7 ส่วน) -->
             <div class="lg:col-span-7 space-y-4">
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
                     <div class="flex justify-between items-center">
@@ -145,7 +145,7 @@
                 </div>
             </div>
 
-            <!-- ฝั่งขวา: ตะกร้าสินค้าออนไลน์ (กินพื้นที่ 5 ส่วน) -->
+            <!-- ฝั่งขวา: ตะกร้าสินค้าออนไลน์ทั้งก้อน (5 ส่วน) -->
             <div class="lg:col-span-5 space-y-4">
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3 sticky top-20">
                     <div class="flex justify-between items-center border-b pb-2.5">
@@ -164,7 +164,7 @@
                         <button onclick="clearSelectedMember()" class="text-red-500 font-bold text-base px-2 bg-white rounded-full shadow-sm">✕</button>
                     </div>
 
-                    <!-- รายการสินค้าในตะกร้า รองรับการปัดไปทางซ้ายเพื่อแสดงเมนูฟังก์ชัน -->
+                    <!-- รายการสินค้าในตะกร้า รองรับการปัดซ้ายเพื่อแสดงเมนูฟังก์ชัน -->
                     <div id="cartItemList" class="space-y-2 max-h-[280px] overflow-y-auto pr-1">
                         <p class="text-center py-6 text-gray-400 text-xs font-medium">ยังไม่มีสินค้าในตะกร้าของคุณ</p>
                     </div>
@@ -823,23 +823,23 @@
                 let sum = item.price * item.qty;
                 total += sum; totalQty += item.qty;
                 
-                // ออกแบบโครงสร้างรายการสินค้าในตะกร้าให้ปัดซ้าย (Swipe-to-reveal) หรือซ่อนปุ่มเมนูด้านข้างไว้เลื่อนดู
+                // โครงสร้างรายการสินค้าในตะกร้า รองรับการปัดไปทางซ้าย (Swipe-to-reveal) เพื่อแสดงปุ่มฟังก์ชัน
                 container.innerHTML += `
                     <div class="relative overflow-hidden border rounded-2xl bg-gray-50/80 text-xs shadow-sm">
-                        <!-- เมนูฟังก์ชันด้านหลัง (ที่จะปรากฏเมื่อปัดหรือแสดงแถบขวา) -->
-                        <div class="absolute inset-y-0 right-0 flex items-center bg-red-600 text-white px-3 gap-2">
-                            <button onclick="removeCartItem(${idx})" class="font-bold p-1 text-sm" title="ลบสินค้า">🗑️</button>
+                        <!-- เมนูด้านหลังที่จะโผล่ขึ้นมาเมื่อปัดไปทางซ้าย -->
+                        <div class="absolute inset-y-0 right-0 flex items-center bg-red-600 text-white px-3.5 gap-2 z-0">
+                            <button onclick="removeCartItem(${idx})" class="font-bold p-1 text-sm" title="ลบสินค้า">🗑️ ลบ</button>
                         </div>
                         
-                        <!-- ตัวการ์ดสินค้าหลักที่สามารถเลื่อนซ้ายได้ -->
-                        <div class="relative bg-white p-3 flex justify-between items-center transition-transform duration-200" ontouchstart="touchStart(event)" ontouchend="touchEnd(event)" style="transform: translateX(0px);">
+                        <!-- การ์ดสินค้าหลักที่สามารถเลื่อนซ้ายได้ -->
+                        <div class="relative bg-white p-3 flex justify-between items-center transition-transform duration-200 z-10" ontouchstart="touchStart(event)" ontouchend="touchEnd(event)" style="transform: translateX(0px);">
                             <div class="pr-2">
                                 <div class="font-bold text-gray-900 text-sm">${item.name}</div>
                                 <div class="text-red-600 font-bold mt-0.5">${sum.toLocaleString()} ฿</div>
                             </div>
                             <div class="flex items-center gap-2">
                                 <input type="number" min="1" value="${item.qty}" onchange="updateCartQty(${idx}, this.value)" class="w-16 border-2 rounded-xl text-center py-1.5 font-bold bg-white">
-                                <span class="text-gray-400 text-[10px]">👈 ปัดซ้าย</span>
+                                <span class="text-gray-400 text-[10px] hidden sm:inline">👈 ปัดซ้าย</span>
                             </div>
                         </div>
                     </div>
@@ -854,7 +854,7 @@
             filterProducts();
         }
 
-        // ฟังก์ชันรองรับการปัดซ้าย (Swipe Left) บนมือถือ/แท็บเล็ต
+        // ระบบตรวจจับการปัดซ้าย (Swipe Left)
         let touchStartX = 0;
         function touchStart(e) {
             touchStartX = e.touches[0].clientX;
@@ -862,10 +862,10 @@
         function touchEnd(e) {
             const touchEndX = e.changedTouches[0].clientX;
             const card = e.currentTarget;
-            if (touchStartX - touchEndX > 50) {
+            if (touchStartX - touchEndX > 40) {
                 // ปัดซ้ายเพื่อเปิดเมนู
                 card.style.transform = 'translateX(-70px)';
-            } else if (touchEndX - touchStartX > 50) {
+            } else if (touchEndX - touchStartX > 40) {
                 // ปัดขวาเพื่อปิดกลับ
                 card.style.transform = 'translateX(0px)';
             }
