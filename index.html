@@ -11,11 +11,6 @@
         body { font-family: 'Sarabun', sans-serif; -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-        @media print {
-            body * { visibility: hidden; }
-            #pdf-printable-area, #pdf-printable-area * { visibility: visible; }
-            #pdf-printable-area { position: absolute; left: 0; top: 0; width: 100%; }
-        }
     </style>
 </head>
 <body class="bg-slate-900 text-gray-900 min-h-screen flex flex-col selection:bg-red-600 selection:text-white text-base">
@@ -140,8 +135,9 @@
                 </div>
             </div>
 
+            <!-- รายการสินค้าพร้อมช่องกรอกจำนวนในหน้าแคตตาล็อก -->
             <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
-                <h3 class="text-sm font-bold text-gray-700">📦 รายการสินค้าแนะนำ (แตะเพื่อสั่งซื้อ)</h3>
+                <h3 class="text-sm font-bold text-gray-700">📦 รายการสินค้า (ระบุจำนวนแล้วกดหยิบใส่ตะกร้า)</h3>
                 <div id="googleSheetProductList" class="space-y-2.5 max-h-[420px] overflow-y-auto pr-1"></div>
             </div>
 
@@ -181,7 +177,7 @@
                     </div>
                 </div>
 
-                <button onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 text-white font-black py-4 rounded-2xl text-base shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
+                <button onclick="handleCheckoutButton()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 text-white font-black py-4 rounded-2xl text-base shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
                     <span>💳</span> ดำเนินการชำระเงิน [F9]
                 </button>
             </div>
@@ -212,7 +208,7 @@
         </div>
     </div>
 
-    <!-- Checkout Modal พร้อมระบบผสมเงินสด/เงินโอน และตรวจสอบยอด -->
+    <!-- Checkout Modal พร้อมระบบผสมเงินสด/เงินโอน และตรวจสอบสลิป -->
     <div id="checkout-modal" class="hidden fixed inset-0 bg-black/80 z-[150] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 relative max-h-[95vh] overflow-y-auto space-y-4 text-sm">
             <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
@@ -256,7 +252,6 @@
                 </label>
             </div>
 
-            <!-- ช่องกรอกชำระแบบผสม (สดเท่าไหร่ / โอนเท่าไหร่) -->
             <div id="mixed-payment-box" class="hidden bg-slate-50 border p-3.5 rounded-2xl space-y-3">
                 <p class="font-bold text-xs text-red-700">🔀 ระบุยอดชำระแบบผสม (เงินสด + เงินโอน)</p>
                 <div class="grid grid-cols-2 gap-2">
@@ -269,7 +264,6 @@
                         <input type="number" id="mixed-transfer-input" oninput="calculateMixedPayment()" step="0.01" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white" placeholder="0.00">
                     </div>
                 </div>
-                <!-- แจ้งเตือนสถานะเงินเกิน / เงินขาด -->
                 <div id="mixed-status-alert" class="text-xs font-bold p-2.5 rounded-xl text-center hidden"></div>
             </div>
 
@@ -278,22 +272,30 @@
                 <div class="bg-white p-2 rounded-xl inline-block border font-mono font-bold text-red-600">[ QR CODE READY ]</div>
             </div>
 
-            <!-- ช่องเพิ่มไฟล์หลักฐานการชำระเงิน -->
-            <div class="bg-gray-50 border p-3 rounded-2xl text-xs space-y-1">
-                <label class="block font-bold text-gray-700">📸 แนบหลักฐานการชำระเงิน (สลิปโอนเงิน):</label>
-                <input type="file" id="payment-slip-file" accept="image/*" class="w-full text-xs text-gray-500 file:py-1 file:px-2 file:rounded-lg file:bg-red-50 file:text-red-700 cursor-pointer">
+            <!-- ช่องเพิ่มไฟล์หลักฐานการชำระเงิน พร้อมระบบเช็คบังคับ -->
+            <div class="bg-red-50 border border-red-200 p-3 rounded-2xl text-xs space-y-1.5">
+                <label class="block font-bold text-red-800">📸 แนบหลักฐานการชำระเงิน (สลิปโอนเงิน) <span class="text-red-600">*จำเป็นต้องแนบ</span></label>
+                <input type="file" id="payment-slip-file" accept="image/*" onchange="checkSlipUploaded()" class="w-full text-xs text-gray-500 file:py-1.5 file:px-2.5 file:rounded-xl file:bg-red-600 file:text-white file:font-bold file:border-0 cursor-pointer">
+                <p id="slip-warning-text" class="text-[11px] text-red-600 font-bold">⚠️ กรุณาแนบสลิปหลักฐานการชำระเงิน มิฉะนั้นจะไม่สามารถบันทึกบิลหรือส่ง LINE ได้</p>
             </div>
 
-            <!-- ปุ่มเปิด Pop-up ดูบิล A4 และปุ่มยืนยันการชำระเงิน -->
+            <!-- ติ๊กยืนยันข้อกำหนดร้านโดยอัตโนมัติและล็อกไว้ -->
+            <div class="bg-gray-50 p-3 rounded-2xl border text-xs flex items-start gap-2">
+                <input type="checkbox" id="store-terms-checkbox" checked disabled class="mt-0.5 w-4 h-4 text-red-600 rounded cursor-not-allowed shrink-0">
+                <label for="store-terms-checkbox" class="text-gray-700 leading-tight">
+                    ฉันได้ตรวจสอบรายการสั่งซื้อเรียบร้อยแล้ว ทางร้านจะไม่รับผิดชอบใดๆ หากสั่งผิดหรือต้องการแก้บิล ต้องทำรายการใหม่เลย
+                </label>
+            </div>
+
             <div class="flex flex-col gap-2.5 pt-3 border-t">
                 <button onclick="openReceiptModalPreview()" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-3 rounded-2xl text-xs shadow transition flex items-center justify-center gap-1.5">
                     <span>📄</span> ตรวจสอบรายละเอียดบิล (A4 Preview)
                 </button>
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="confirmAndDownloadPDF()" id="btn-confirm-pdf" class="bg-red-600 hover:bg-red-700 text-white font-black py-3.5 rounded-2xl text-xs shadow flex items-center justify-center gap-1.5">
+                    <button onclick="confirmAndDownloadPDF()" id="btn-confirm-pdf" disabled class="bg-red-600 text-white font-black py-3.5 rounded-2xl text-xs shadow flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed">
                         <span>📥</span> บันทึก PDF
                     </button>
-                    <button onclick="confirmAndShareLine()" id="btn-confirm-line" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs shadow flex items-center justify-center gap-1.5">
+                    <button onclick="confirmAndShareLine()" id="btn-confirm-line" disabled class="bg-emerald-600 text-white font-black py-3.5 rounded-2xl text-xs shadow flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed">
                         <span>💬</span> ส่ง LINE OA
                     </button>
                 </div>
@@ -446,12 +448,13 @@
         function handleSearchKeyup(e) {
             const res = filterProducts();
             if (e.key === 'Enter' && res.length > 0) {
-                addToCart(res[0].name, res[0].price);
+                addCatalogProductToCart(res[0].code, res[0].name, res[0].price);
                 document.getElementById('productSearchInput').value = '';
                 filterProducts();
             }
         }
 
+        // แสดงรายการสินค้าพร้อมช่องกรอกจำนวนในหน้าแคตตาล็อก
         function renderProductList(list) {
             const container = document.getElementById('googleSheetProductList');
             container.innerHTML = '';
@@ -461,23 +464,34 @@
             }
             list.forEach(p => {
                 const card = document.createElement('div');
-                card.className = 'border-2 border-gray-100 hover:border-red-300 rounded-2xl p-3.5 flex justify-between items-center bg-slate-50/50 shadow-sm transition';
+                card.className = 'border-2 border-gray-100 hover:border-red-300 rounded-2xl p-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 shadow-sm transition gap-2';
                 card.innerHTML = `
-                    <div class="pr-2">
+                    <div class="pr-2 w-full sm:w-auto">
                         <div class="text-xs font-bold text-gray-900">${p.name}</div>
                         <div class="text-[11px] text-gray-500 mt-0.5 font-medium">${p.brand} &bull; ${p.unit} &bull; <span class="text-red-600 font-mono font-bold">${p.code}</span></div>
                         <div class="text-sm font-black text-red-700 mt-1">${p.price.toLocaleString()} ฿</div>
                     </div>
-                    <button onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.price})" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-2.5 rounded-2xl text-xs shadow transition active:scale-95 shrink-0">＋ เลือก</button>
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                        <div class="flex items-center gap-1">
+                            <span class="text-[11px] font-bold text-gray-600">จำนวน:</span>
+                            <input type="number" id="catalog-qty-${p.code}" min="1" value="1" class="w-16 border-2 rounded-xl text-center py-1 text-xs font-bold bg-white">
+                        </div>
+                        <button onclick="addCatalogProductToCart('${p.code}', '${p.name.replace(/'/g, "\\'")}', ${p.price})" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-2 rounded-xl text-xs shadow transition active:scale-95">＋ ใส่ตะกร้า</button>
+                    </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        function addToCart(name, price) {
+        function addCatalogProductToCart(code, name, price) {
+            const qtyInput = document.getElementById(`catalog-qty-${code}`);
+            const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+            
             const ex = cartItems.find(i => i.name === name);
-            if(ex) ex.qty += 1;
-            else cartItems.push({ name, price, qty: 1 });
+            if(ex) ex.qty += qty;
+            else cartItems.push({ name, price, qty: qty });
+            
+            if(qtyInput) qtyInput.value = '1';
             renderCart();
         }
 
@@ -492,8 +506,18 @@
         function clearCart() { cartItems = []; renderCart(); }
 
         let currentSubtotal = 0;
-        function openCheckoutModal() {
+
+        // เมื่อกดปุ่มชำระเงิน จะแสดง Pop-up แจ้งเตือนเงื่อนไขร้านค้าก่อน
+        function handleCheckoutButton() {
             if (cartItems.length === 0) { alert('กรุณาเลือกสินค้าใส่ตะกร้าก่อน'); return; }
+
+            const confirmed = confirm("⚠️ คำเตือนสำคัญจากทางร้าน\n\nคุณได้ตรวจสอบรายการสั่งซื้อเรียบร้อยแล้ว ทางร้านจะไม่รับผิดชอบใดๆ ทั้งสิ้นหากท่านสั่งสินค้าผิดรุ่น ผิดขนาด หรือต้องการแก้ไขบิลหลังจากยืนยันรายการนี้ ท่านจะต้องทำรายการสั่งซื้อใหม่ทั้งหมดเท่านั้น\n\nกด 'OK' เพื่อดำเนินการชำระเงินต่อ");
+            if (!confirmed) return;
+
+            openCheckoutModal();
+        }
+
+        function openCheckoutModal() {
             currentSubtotal = cartItems.reduce((sum, i) => sum + (i.price * i.qty), 0);
             document.getElementById('pay-modal-total').innerText = currentSubtotal.toLocaleString() + ' ฿';
             
@@ -506,15 +530,17 @@
             document.getElementById('pay-modal-vat-amount').innerText = vat.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' ฿';
             document.getElementById('pay-modal-net').innerText = net.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' ฿';
             
-            // รีเซ็ตฟอร์มผสม
             document.getElementById('mixed-cash-input').value = '';
             document.getElementById('mixed-transfer-input').value = '';
             document.getElementById('mixed-status-alert').classList.add('hidden');
+            document.getElementById('payment-slip-file').value = '';
             isMixedPaymentValid = true;
 
+            checkSlipUploaded();
             handlePaymentMethodChange();
             document.getElementById('checkout-modal').classList.remove('hidden');
         }
+
         function closeCheckoutModal() { document.getElementById('checkout-modal').classList.add('hidden'); }
 
         function handlePaymentMethodChange() {
@@ -526,7 +552,6 @@
             }
         }
 
-        // คำนวณและตรวจสอบยอดชำระแบบผสม (สด + โอน)
         function calculateMixedPayment() {
             const netStr = document.getElementById('pay-modal-net').innerText.replace(/,/g, '').replace(' ฿', '');
             const net = parseFloat(netStr) || 0;
@@ -538,27 +563,47 @@
             const alertBox = document.getElementById('mixed-status-alert');
             alertBox.classList.remove('hidden');
 
-            const btnPdf = document.getElementById('btn-confirm-pdf');
-            const btnLine = document.getElementById('btn-confirm-line');
-
             if (Math.abs(diff) < 0.01) {
                 alertBox.innerText = `✅ ยอดชำระถูกต้องพอดีเป๊ะ (${totalPaid.toLocaleString()} บาท)`;
                 alertBox.className = "text-xs font-bold p-2.5 rounded-xl text-center bg-emerald-100 text-emerald-800 border border-emerald-300";
                 isMixedPaymentValid = true;
+            } else if (diff < 0) {
+                alertBox.innerText = `❌ เงินยังไม่ครบ ขาดอีก ${Math.abs(diff).toLocaleString()} บาท`;
+                alertBox.className = "text-xs font-bold p-2.5 rounded-xl text-center bg-red-100 text-red-800 border border-red-300";
+                isMixedPaymentValid = false;
+            } else {
+                alertBox.innerText = `❌ เงินเกินมา ${diff.toLocaleString()} บาท (ต้องพอดีเท่านั้น)`;
+                alertBox.className = "text-xs font-bold p-2.5 rounded-xl text-center bg-amber-100 text-amber-900 border border-amber-300";
+                isMixedPaymentValid = false;
+            }
+            checkSlipUploaded();
+        }
+
+        // ตรวจสอบว่าอัปโหลดสลิปแล้วหรือยังเพื่อเปิด/ปิดปุ่มบันทึก
+        function checkSlipUploaded() {
+            const slipInput = document.getElementById('payment-slip-file');
+            const hasSlip = slipInput.files.length > 0;
+            const warningText = document.getElementById('slip-warning-text');
+            const btnPdf = document.getElementById('btn-confirm-pdf');
+            const btnLine = document.getElementById('btn-confirm-line');
+
+            const method = document.querySelector('input[name="payMethod"]:checked').value;
+            const mixedValid = (method !== 'mixed' || isMixedPaymentValid);
+
+            if (hasSlip && mixedValid) {
+                warningText.innerText = "✅ แนบหลักฐานการชำระเงินเรียบร้อยแล้ว";
+                warningText.className = "text-[11px] text-emerald-700 font-bold";
                 btnPdf.disabled = false; btnLine.disabled = false;
                 btnPdf.classList.remove('opacity-50', 'cursor-not-allowed');
                 btnLine.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else if (diff < 0) {
-                alertBox.innerText = `❌ เงินยังไม่ครบ ขาดอีก ${Math.abs(diff).toLocaleString()} บาท (ไม่สามารถบันทึกได้)`;
-                alertBox.className = "text-xs font-bold p-2.5 rounded-xl text-center bg-red-100 text-red-800 border border-red-300";
-                isMixedPaymentValid = false;
-                btnPdf.disabled = true; btnLine.disabled = true;
-                btnPdf.classList.add('opacity-50', 'cursor-not-allowed');
-                btnLine.classList.add('opacity-50', 'cursor-not-allowed');
             } else {
-                alertBox.innerText = `❌ เงินเกินมา ${diff.toLocaleString()} บาท (ไม่สามารถบันทึกได้ ต้องพอดีเท่านั้น)`;
-                alertBox.className = "text-xs font-bold p-2.5 rounded-xl text-center bg-amber-100 text-amber-900 border-amber-300";
-                isMixedPaymentValid = false;
+                if (!hasSlip) {
+                    warningText.innerText = "⚠️ กรุณาแนบสลิปหลักฐานการชำระเงิน มิฉะนั้นจะไม่สามารถบันทึกบิลหรือส่ง LINE ได้";
+                    warningText.className = "text-[11px] text-red-600 font-bold";
+                } else if (!mixedValid) {
+                    warningText.innerText = "⚠️ ยอดชำระแบบผสมยังไม่ถูกต้องพอดีกับยอดสุทธิ";
+                    warningText.className = "text-[11px] text-red-600 font-bold";
+                }
                 btnPdf.disabled = true; btnLine.disabled = true;
                 btnPdf.classList.add('opacity-50', 'cursor-not-allowed');
                 btnLine.classList.add('opacity-50', 'cursor-not-allowed');
@@ -592,17 +637,11 @@
                 net: net,
                 items: JSON.parse(JSON.stringify(cartItems)),
                 payMethod: payDetail,
-                hasSlip: document.getElementById('payment-slip-file').files.length > 0
+                hasSlip: true
             };
         }
 
-        // Pop-up แสดงตัวอย่างบิล A4
         function openReceiptModalPreview() {
-            const method = document.querySelector('input[name="payMethod"]:checked').value;
-            if(method === 'mixed' && !isMixedPaymentValid) {
-                alert('⚠️ กรุณาระบุยอดชำระแบบผสมให้ถูกต้องพอดีกับยอดสุทธิ จึงจะสามารถตรวจสอบบิลและบันทึกได้');
-                return;
-            }
             const bill = generateBillData();
             buildReceiptHTML(bill, 'receipt-preview-container');
             document.getElementById('receipt-modal-preview').classList.remove('hidden');
@@ -642,7 +681,7 @@
                     </div>
                     <div>
                         <p class="font-bold text-gray-700">📍 ข้อมูลการชำระ:</p>
-                        <p>วิธีชำระ: <span class="font-bold text-red-700">${bill.payMethod}</span> ${bill.hasSlip ? '📸(แนบสลิปแล้ว)' : ''}</p>
+                        <p>วิธีชำระ: <span class="font-bold text-red-700">${bill.payMethod}</span> 📸(แนบสลิปแล้ว)</p>
                     </div>
                 </div>
                 <table class="w-full text-left border-collapse border border-gray-200 text-xs mb-3">
@@ -674,18 +713,7 @@
             `;
         }
 
-        // ยืนยันการชำระเงิน & แจ้งเตือนเงื่อนไขร้านค้าก่อนบันทึก PDF
         function confirmAndDownloadPDF() {
-            const method = document.querySelector('input[name="payMethod"]:checked').value;
-            if(method === 'mixed' && !isMixedPaymentValid) {
-                alert('⚠️ ยอดชำระแบบผสมไม่ถูกต้อง (เกินหรือขาด) ไม่สามารถบันทึกได้');
-                return;
-            }
-
-            // Pop-up แจ้งเตือนเงื่อนไขร้านค้าภาษาละมุนแต่เด็ดขาด
-            const confirmed = confirm("⚠️ คำเตือนสำคัญจากทางร้าน\n\nคุณได้ตรวจสอบรายการสั่งซื้อเรียบร้อยแล้ว ทางร้านจะไม่รับผิดชอบใดๆ ทั้งสิ้นหากท่านสั่งสินค้าผิดรุ่น ผิดขนาด หรือต้องการแก้ไขบิลหลังจากยืนยันรายการนี้ ท่านจะต้องทำรายการสั่งซื้อใหม่ทั้งหมดเท่านั้น\n\nท่านต้องการยืนยันและดาวน์โหลดบิล PDF หรือไม่?");
-            if(!confirmed) return;
-
             const bill = generateBillData();
             buildReceiptHTML(bill, 'pdf-printable-area');
 
@@ -706,17 +734,7 @@
             });
         }
 
-        // ยืนยันการชำระเงิน & แชร์ต่อผ่าน LINE OA พร้อมแจ้งเตือนเงื่อนไข
         function confirmAndShareLine() {
-            const method = document.querySelector('input[name="payMethod"]:checked').value;
-            if(method === 'mixed' && !isMixedPaymentValid) {
-                alert('⚠️ ยอดชำระแบบผสมไม่ถูกต้อง (เกินหรือขาด) ไม่สามารถส่งต่อได้');
-                return;
-            }
-
-            const confirmed = confirm("⚠️ คำเตือนสำคัญจากทางร้าน\n\nคุณได้ตรวจสอบรายการสั่งซื้อเรียบร้อยแล้ว ทางร้านจะไม่รับผิดชอบใดๆ ทั้งสิ้นหากท่านสั่งสินค้าผิดรุ่น ผิดขนาด หรือต้องการแก้ไขบิลหลังจากยืนยันรายการนี้ ท่านจะต้องทำรายการสั่งซื้อใหม่ทั้งหมดเท่านั้น\n\nท่านต้องการยืนยันและส่งต่อผ่าน LINE OA หรือไม่?");
-            if(!confirmed) return;
-
             const bill = generateBillData();
             let itemsText = bill.items.map(i => `• ${i.name} x ${i.qty} = ${(i.price * i.qty).toLocaleString()} ฿`).join('\n');
             let lineMessage = `🐾 *คำสั่งซื้อใหม่: ${bill.taxId}* 🐾\n` +
