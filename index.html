@@ -41,7 +41,7 @@
                 <div>
                     <label class="block font-bold text-gray-700 mb-1.5 text-xs">รหัสผ่าน</label>
                     <div class="relative">
-                        <input type="password" id="login-pass" required placeholder="กรอกรหัสผ่านที่ได้รับ" class="w-full border-2 border-gray-200 rounded-2xl px-4 py-3.5 text-sm font-semibold bg-gray-50 focus:border-red-600 focus:outline-none pr-12">
+                        <input type="password" id="login-pass" required placeholder="กรอกรหัสผ่านที่ได้รับ" class="w-full border-2 border-gray-200 rounded-2xl px-4 py-3.5 text-sm font-semibold bg-gray-50 focus:border-red-600 focus:outline-none pr-12" value="1234">
                         <button type="button" onclick="togglePassword('login-pass')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 text-lg">👁️</button>
                     </div>
                 </div>
@@ -109,7 +109,7 @@
             <div class="lg:col-span-7 space-y-4">
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
                     <div class="flex justify-between items-center">
-                        <h2 class="text-base font-black text-red-700">🛒 แคตตาล็อกสินค้าค้าส่ง (เช็คสต็อกเรียลไทม์)</h2>
+                        <h2 class="text-base font-black text-red-700">🛒 แคตตาล็อกสินค้าค้าส่ง</h2>
                         <button onclick="togglePriceSort()" id="sortPriceBtn" class="bg-red-50 hover:bg-red-100 text-red-700 font-bold px-3.5 py-2 rounded-2xl text-xs border border-red-200 transition flex items-center gap-1 shadow-sm">
                             <span>📊 เรียงราคา: ปกติ</span>
                         </button>
@@ -118,19 +118,18 @@
                     <div class="grid grid-cols-2 gap-2">
                         <select id="brandFilterSelect" onchange="filterProducts()" class="border-2 border-gray-200 rounded-2xl px-3.5 py-3 text-xs font-bold bg-gray-50 text-gray-800 focus:border-red-600 focus:outline-none">
                             <option value="">🏢 ทุกหมวดหมู่</option>
-                            <option value="อาหารสุนัข">อาหารสุนัข (ยกลัง/กระสอบ)</option>
-                            <option value="อาหารแมว">อาหารแมว (ยกลัง/กระสอบ)</option>
-                            <option value="สัตว์ฟันแทะ">สัตว์ฟันแทะ (แพ็คใหญ่)</option>
-                            <option value="เปียก">อาหารเปียก (ยกลัง)</option>
-                            <option value="Topfeed">อาหารสัตว์เศรษฐกิจ Topfeed</option>
+                            <option value="อาหารสุนัข">อาหารสุนัข</option>
+                            <option value="อาหารแมว">อาหารแมว</option>
+                            <option value="สัตว์ฟันแทะ">สัตว์ฟันแทะ</option>
+                            <option value="เปียก">อาหารเปียก</option>
+                            <option value="Topfeed">อาหารสัตว์เศรษฐกิจ</option>
                         </select>
                         <select id="unitFilterSelect" onchange="filterProducts()" class="border-2 border-gray-200 rounded-2xl px-3.5 py-3 text-xs font-bold bg-gray-50 text-gray-800 focus:border-red-600 focus:outline-none">
-                            <option value="">🏷️ ทุกหน่วย</option>
+                            <option value="">🏷️ ทุกขนาด</option>
                             <option value="ลัง">ลัง</option>
                             <option value="กระสอบ">กระสอบ</option>
-                            <option value="แพ็ค">แพ็ค</option>
                             <option value="ถุง">ถุง</option>
-                            <option value="ชิ้น">ชิ้น</option>
+                            <option value="แพ็ค">แพ็ค</option>
                         </select>
                     </div>
 
@@ -142,7 +141,7 @@
 
                 <!-- รายการสินค้า -->
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
-                    <h3 class="text-sm font-bold text-gray-700">📦 รายการสินค้า (เลือกหน่วยและระบุจำนวนก่อนหยิบใส่ตะกร้า)</h3>
+                    <h3 class="text-sm font-bold text-gray-700">📦 รายการสินค้า (เลือกหน่วย และระบุจำนวนก่อนหยิบใส่ตะกร้า)</h3>
                     <div id="googleSheetProductList" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1"></div>
                 </div>
             </div>
@@ -180,9 +179,7 @@
     <div id="mobile-cart-modal" class="hidden fixed inset-0 bg-black/80 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-lg rounded-t-[2.5rem] sm:rounded-3xl shadow-2xl p-5 relative flex flex-col max-h-[85vh]">
             <button onclick="closeMobileCartModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
-            <div id="mobile-modal-cart-content" class="space-y-4 overflow-y-auto flex-grow pr-1">
-                <!-- เนื้อหาตะกร้าในมือถือ -->
-            </div>
+            <div id="mobile-modal-cart-content" class="space-y-4 overflow-y-auto flex-grow pr-1"></div>
         </div>
     </div>
 
@@ -190,7 +187,7 @@
     <div id="staff-report-modal" class="hidden fixed inset-0 bg-black/80 z-[150] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-5 relative flex flex-col max-h-[90vh]">
             <button onclick="closeStaffReportModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
-            <h3 class="text-base font-bold text-red-700 mb-3">📦 ประวัติคำสั่งซื้อออนไลน์ (รวมรายการค้างส่ง)</h3>
+            <h3 class="text-base font-bold text-red-700 mb-3">📦 ประวัติคำสั่งซื้อออนไลน์</h3>
             <div class="overflow-y-auto flex-grow rounded-2xl border border-gray-200">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-red-50 text-red-900 font-bold">
@@ -333,7 +330,6 @@
         </div>
     </div>
 
-    <!-- Hidden Printable Area -->
     <div id="pdf-printable-area" class="hidden fixed -left-[9999px] top-0 bg-white p-8 text-sm text-gray-900" style="width: 210mm;"></div>
 
     <!-- Hold Bill Modal (F8) -->
@@ -362,19 +358,85 @@
             { petName: "พุนพินเพ็ทมาร์ท", ownerName: "คุณลิลลี่", address: "ตลาดพุนพิน สุราษฎร์ธานี", phone: "0895551234" }
         ];
 
-        // ฐานข้อมูลสินค้า รองรับหลายหน่วยและสต๊อกคงเหลือ (stock)
+        // เพิ่มข้อมูลสต็อกและหน่วยสินค้าหลายหน่วยต่อรายการ
         let productsFromSheet = [
-            { code: "WH-001", name: "Kaniva หมา รสไก่ 1 กก.", brand: "อาหารสุนัข", stock: 5, unitTiers: [ {unit: "ลัง", price: 1400}, {unit: "ถุง", price: 125}, {unit: "ชิ้น", price: 130} ] },
-            { code: "WH-002", name: "Luvcare สุนัขพันธุ์กลาง 500g", brand: "อาหารสุนัข", stock: 12, unitTiers: [ {unit: "ลัง", price: 950}, {unit: "ถุง", price: 50} ] },
-            { code: "WH-003", name: "SMH gold holistic สุนัขโต 1.5kg.", brand: "อาหารสุนัข", stock: 3, unitTiers: [ {unit: "กระสอบ", price: 1250}, {unit: "ถุง", price: 135} ] },
-            { code: "WH-004", name: "Apro โต ตับย่าง 1 กก.", brand: "อาหารสุนัข", stock: 20, unitTiers: [ {unit: "ลัง", price: 650}, {unit: "ถุง", price: 45} ] },
-            { code: "WH-005", name: "JH Meat as Meals รสไก่ 500g", brand: "อาหารสุนัข", stock: 2, unitTiers: [ {unit: "ลัง", price: 2100}, {unit: "ถุง", price: 220} ] },
-            { code: "WH-101", name: "Smillie แมว รสแซลมอน", brand: "อาหารแมว", stock: 15, unitTiers: [ {unit: "ลัง", price: 550}, {unit: "ซอง", price: 25} ] },
-            { code: "WH-102", name: "PurinaOne HairBall 380g", brand: "อาหารแมว", stock: 8, unitTiers: [ {unit: "ลัง", price: 1500}, {unit: "ถุง", price: 130} ] },
-            { code: "WH-103", name: "Me-o Gold อินดอร์ 400g", brand: "อาหารแมว", stock: 4, unitTiers: [ {unit: "ลัง", price: 1100}, {unit: "ถุง", price: 95} ] },
-            { code: "WH-201", name: "Alfafa สับเกรดลัคชู 500g", brand: "สัตว์ฟันแทะ", stock: 10, unitTiers: [ {unit: "แพ็ค", price: 750}, {unit: "ถุง", price: 160} ] },
-            { code: "WH-301", name: "Buzz/P CG01 ไก่เกรวี่ 70g", brand: "เปียก", stock: 30, unitTiers: [ {unit: "ลัง", price: 820}, {unit: "ซอง", price: 18} ] },
-            { code: "WH-401", name: "อาหารหมูนมไก่ 1 กก.", brand: "Topfeed", stock: 6, unitTiers: [ {unit: "กระสอบ", price: 330}, {unit: "ถุง", price: 12} ] }
+            { 
+                code: "WH-001", name: "Kaniva หมา รสไก่ 1 กก.", brand: "อาหารสุนัข", 
+                units: [
+                    { unitName: "ลัง", price: 1400, stock: 5 },
+                    { unitName: "ถุง", price: 130, stock: 45 }
+                ] 
+            },
+            { 
+                code: "WH-002", name: "Luvcare สุนัขพันธุ์กลาง 500g", brand: "อาหารสุนัข", 
+                units: [
+                    { unitName: "ลัง", price: 950, stock: 3 },
+                    { unitName: "ถุง", price: 55, stock: 20 }
+                ] 
+            },
+            { 
+                code: "WH-003", name: "SMH gold holistic สุนัขโต 1.5kg.", brand: "อาหารสุนัข", 
+                units: [
+                    { unitName: "กระสอบ", price: 1250, stock: 2 },
+                    { unitName: "ถุง", price: 140, stock: 15 }
+                ] 
+            },
+            { 
+                code: "WH-004", name: "Apro โต ตับย่าง 1 กก.", brand: "อาหารสุนัข", 
+                units: [
+                    { unitName: "ลัง", price: 650, stock: 8 },
+                    { unitName: "ถุง", price: 50, stock: 50 }
+                ] 
+            },
+            { 
+                code: "WH-005", name: "JH Meat as Meals รสไก่ 500g", brand: "อาหารสุนัข", 
+                units: [
+                    { unitName: "ลัง", price: 2100, stock: 4 },
+                    { unitName: "ถุง", price: 220, stock: 10 }
+                ] 
+            },
+            { 
+                code: "WH-101", name: "Smillie แมว รสแซลมอน", brand: "อาหารแมว", 
+                units: [
+                    { unitName: "ลัง", price: 550, stock: 10 },
+                    { unitName: "ซอง", price: 25, stock: 100 }
+                ] 
+            },
+            { 
+                code: "WH-102", name: "PurinaOne HairBall 380g", brand: "อาหารแมว", 
+                units: [
+                    { unitName: "ลัง", price: 1500, stock: 6 },
+                    { unitName: "ถุง", price: 135, stock: 30 }
+                ] 
+            },
+            { 
+                code: "WH-103", name: "Me-o Gold อินดอร์ 400g", brand: "อาหารแมว", 
+                units: [
+                    { unitName: "ลัง", price: 1100, stock: 7 },
+                    { unitName: "ถุง", price: 100, stock: 25 }
+                ] 
+            },
+            { 
+                code: "WH-201", name: "Alfafa สับเกรดลัคชู 500g", brand: "สัตว์ฟันแทะ", 
+                units: [
+                    { unitName: "แพ็ค", price: 750, stock: 5 },
+                    { unitName: "ชิ้น", price: 160, stock: 12 }
+                ] 
+            },
+            { 
+                code: "WH-301", name: "Buzz/P CG01 ไก่เกวี่ 70g", brand: "เปียก", 
+                units: [
+                    { unitName: "ลัง", price: 820, stock: 12 },
+                    { unitName: "ซอง", price: 18, stock: 200 }
+                ] 
+            },
+            { 
+                code: "WH-401", name: "อาหารหมูนมไก่ 1 กก.", brand: "Topfeed", 
+                units: [
+                    { unitName: "กระสอบ", price: 330, stock: 15 },
+                    { unitName: "ถุง", price: 12, stock: 80 }
+                ] 
+            }
         ];
 
         function updateLiveTimestamp() {
@@ -446,17 +508,17 @@
         function filterProducts() {
             const kw = document.getElementById('productSearchInput').value.toLowerCase();
             const brand = document.getElementById('brandFilterSelect').value;
-            const unit = document.getElementById('unitFilterSelect').value;
+            const unitFilter = document.getElementById('unitFilterSelect').value;
 
             let filtered = productsFromSheet.filter(p => {
                 const matchKw = p.code.toLowerCase().includes(kw) || p.name.toLowerCase().includes(kw);
                 const matchBrand = brand === "" || p.brand === brand;
-                const matchUnit = unit === "" || p.unitTiers.some(t => t.unit === unit);
+                const matchUnit = unitFilter === "" || p.units.some(u => u.unitName === unitFilter);
                 return matchKw && matchBrand && matchUnit;
             });
 
-            if (currentSortOrder === 'asc') filtered.sort((a, b) => a.unitTiers[0].price - b.unitTiers[0].price);
-            else if (currentSortOrder === 'desc') filtered.sort((a, b) => b.unitTiers[0].price - a.unitTiers[0].price);
+            if (currentSortOrder === 'asc') filtered.sort((a, b) => a.units[0].price - b.units[0].price);
+            else if (currentSortOrder === 'desc') filtered.sort((a, b) => b.units[0].price - a.units[0].price);
 
             renderProductList(filtered);
             return filtered;
@@ -465,23 +527,10 @@
         function handleSearchKeyup(e) {
             const res = filterProducts();
             if (e.key === 'Enter' && res.length > 0) {
-                const p = res[0];
-                const unitSelect = document.getElementById(`catalog-unit-${p.code}`);
-                const selectedUnit = unitSelect ? unitSelect.value : p.unitTiers[0].unit;
-                const tier = p.unitTiers.find(t => t.unit === selectedUnit) || p.unitTiers[0];
-                addCatalogProductToCart(p.code, p.name, tier.unit, tier.price, p.stock);
+                addCatalogProductToCart(res[0].code);
                 document.getElementById('productSearchInput').value = '';
                 filterProducts();
             }
-        }
-
-        function updateCatalogPriceDisplay(code) {
-            const p = productsFromSheet.find(item => item.code === code);
-            if(!p) return;
-            const select = document.getElementById(`catalog-unit-${code}`);
-            const priceDisp = document.getElementById(`catalog-price-disp-${code}`);
-            const tier = p.unitTiers.find(t => t.unit === select.value) || p.unitTiers[0];
-            priceDisp.innerText = tier.price.toLocaleString() + ' ฿';
         }
 
         function renderProductList(list) {
@@ -493,90 +542,94 @@
             }
             list.forEach(p => {
                 let unitOptionsHtml = '';
-                p.unitTiers.forEach(tier => {
-                    unitOptionsHtml += `<option value="${tier.unit}">${tier.unit}</option>`;
+                p.units.forEach((u, uIdx) => {
+                    unitOptionsHtml += `<option value="${uIdx}">${u.unitName} (ราคา ${u.price.toLocaleString()}฿ | คงเหลือ: ${u.stock} ${u.unitName})</option>`;
                 });
-                const initialPrice = p.unitTiers[0].price;
 
                 const card = document.createElement('div');
                 card.className = 'border-2 border-gray-100 hover:border-red-300 rounded-2xl p-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 shadow-sm transition gap-2';
                 card.innerHTML = `
                     <div class="pr-2 w-full sm:w-auto">
                         <div class="text-xs font-bold text-gray-900">${p.name}</div>
-                        <div class="text-[11px] text-gray-500 mt-0.5 font-medium">${p.brand} &bull; สต๊อกเหลือ: <span class="text-emerald-700 font-bold">${p.stock}</span> หน่วย &bull; <span class="text-red-600 font-mono font-bold">${p.code}</span></div>
-                        <div class="text-sm font-black text-red-700 mt-1" id="catalog-price-disp-${p.code}">${initialPrice.toLocaleString()} ฿</div>
-                    </div>
-                    <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
-                        <div class="flex items-center gap-1">
-                            <span class="text-[11px] font-bold text-gray-600">หน่วย:</span>
-                            <select id="catalog-unit-${p.code}" onchange="updateCatalogPriceDisplay('${p.code}')" class="border-2 rounded-xl text-center py-1 text-xs font-bold bg-white focus:border-red-600 focus:outline-none">
+                        <div class="text-[11px] text-gray-500 mt-0.5 font-medium">${p.brand} &bull; <span class="text-red-600 font-mono font-bold">${p.code}</span></div>
+                        <div class="mt-1 flex items-center gap-1.5">
+                            <select id="catalog-unit-${p.code}" class="border rounded-xl px-2 py-1 text-xs font-bold bg-white text-red-700 focus:outline-none">
                                 ${unitOptionsHtml}
                             </select>
                         </div>
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                         <div class="flex items-center gap-1">
                             <span class="text-[11px] font-bold text-gray-600">จำนวน:</span>
                             <input type="number" id="catalog-qty-${p.code}" min="1" value="1" class="w-16 border-2 rounded-xl text-center py-1 text-xs font-bold bg-white">
                         </div>
-                        <button onclick="addCatalogProductToCartFromUI('${p.code}')" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-2 rounded-xl text-xs shadow transition active:scale-95">＋ ใส่ตะกร้า</button>
+                        <button onclick="addCatalogProductToCart('${p.code}')" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-2 rounded-xl text-xs shadow transition active:scale-95">＋ ใส่ตะกร้า</button>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        function addCatalogProductToCartFromUI(code) {
-            const p = productsFromSheet.find(item => item.code === code);
-            if(!p) return;
+        function addCatalogProductToCart(code) {
+            const product = productsFromSheet.find(p => p.code === code);
+            if(!product) return;
+
             const unitSelect = document.getElementById(`catalog-unit-${code}`);
+            const unitIdx = parseInt(unitSelect.value) || 0;
+            const selectedUnitObj = product.units[unitIdx];
+
             const qtyInput = document.getElementById(`catalog-qty-${code}`);
-            const unit = unitSelect ? unitSelect.value : p.unitTiers[0].unit;
             const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
-            const tier = p.unitTiers.find(t => t.unit === unit) || p.unitTiers[0];
 
-            addCatalogProductToCart(p.code, p.name, unit, tier.price, p.stock, qty);
-        }
+            // ตรวจสอบสต็อกและแยกรายการคงค้าง (Backorder) หากสั่งเกิน
+            const stockAvailable = selectedUnitObj.stock;
+            const normalQty = Math.min(qty, stockAvailable);
+            const backorderQty = qty > stockAvailable ? qty - stockAvailable : 0;
 
-        function addCatalogProductToCart(code, name, unit, price, stock, qty = 1) {
-            // เช็คว่าในตะกร้ามีสินค้ารายการนี้และหน่วยเดียวกันหรือยัง
-            const ex = cartItems.find(i => i.code === code && i.unit === unit);
-            let totalRequestedQty = qty;
-            if(ex) {
-                totalRequestedQty += ex.requestedQty;
+            // จัดการรายการปกติ
+            if (normalQty > 0) {
+                const uniqueName = `${product.name} (${selectedUnitObj.unitName})`;
+                const ex = cartItems.find(i => i.name === uniqueName && !i.isBackorder);
+                if(ex) {
+                    ex.qty += normalQty;
+                } else {
+                    cartItems.push({
+                        code: product.code,
+                        name: uniqueName,
+                        unit: selectedUnitObj.unitName,
+                        price: selectedUnitObj.price,
+                        qty: normalQty,
+                        isBackorder: false
+                    });
+                }
             }
 
-            // คำนวณสต๊อกคงเหลือและส่วนค้างส่ง (Backorder)
-            let actualQtyToDeliver = Math.min(totalRequestedQty, stock);
-            let backorderQty = Math.max(0, totalRequestedQty - stock);
-
-            if(ex) {
-                ex.requestedQty = totalRequestedQty;
-                ex.qty = actualQtyToDeliver;
-                ex.backorderQty = backorderQty;
-            } else {
-                cartItems.push({
-                    code,
-                    name,
-                    unit,
-                    price,
-                    stock,
-                    requestedQty: totalRequestedQty,
-                    qty: actualQtyToDeliver,
-                    backorderQty: backorderQty
-                });
+            // จัดการรายการคงค้างส่ง (ราคา 0 บาท)
+            if (backorderQty > 0) {
+                const boName = `${product.name} (${selectedUnitObj.unitName}) [สินค้าคงค้างส่ง]`;
+                const exBo = cartItems.find(i => i.name === boName && i.isBackorder);
+                if(exBo) {
+                    exBo.qty += backorderQty;
+                } else {
+                    cartItems.push({
+                        code: product.code,
+                        name: boName,
+                        unit: selectedUnitObj.unitName,
+                        price: 0, // ราคา 0 บาทตามโจทย์
+                        qty: backorderQty,
+                        isBackorder: true
+                    });
+                }
+                alert(`⚠️ สินค้า "${product.name}" มีสต็อกเพียง ${stockAvailable} ${selectedUnitObj.unitName}\n- ระบบได้เพิ่มรายการปกติ ${normalQty} หน่วย\n- และเพิ่มรายการ "สินค้าคงค้างส่ง" ${backorderQty} หน่วย (ราคา 0 บาท) ลงในตะกร้าเรียบร้อยแล้วค่ะ`);
             }
+
             renderCart();
         }
 
-        function updateCartRequestedQty(i, newRequestedQty) {
-            const q = parseInt(newRequestedQty);
-            if(isNaN(q) || q <= 0) {
-                cartItems.splice(i, 1);
-            } else {
-                const item = cartItems[i];
-                item.requestedQty = q;
-                item.qty = Math.min(q, item.stock);
-                item.backorderQty = Math.max(0, q - item.stock);
-            }
+        function updateCartQty(i, qty) {
+            const q = parseInt(qty);
+            if(isNaN(q) || q <= 0) cartItems.splice(i, 1);
+            else cartItems[i].qty = q;
             renderCart();
         }
 
@@ -587,7 +640,7 @@
 
         function openCheckoutModal() {
             if (cartItems.length === 0) { alert('กรุณาเลือกสินค้าใส่ตะกร้าก่อน'); return; }
-            currentSubtotal = cartItems.reduce((sum, i) => sum + (i.price * i.requestedQty), 0);
+            currentSubtotal = cartItems.reduce((sum, i) => sum + (i.price * i.qty), 0);
             document.getElementById('pay-modal-total').innerText = currentSubtotal.toLocaleString() + ' ฿';
             
             const discount = (currentSubtotal * 2) / 100;
@@ -698,12 +751,12 @@
         }
 
         function handleConfirmPaymentClick() {
-            const confirmed = confirm("⚠️ คำเตือนสำคัญจากทางร้าน\n\nคุณได้ตรวจสอบรายการสั่งซื้อเรียบร้อยแล้ว หากมีรายการสินค้าคงค้างส่ง ระบบจะบันทึกยอดค้างส่งและเพิ่มรายการ 0 บาทให้อัตโนมัติ\n\nกด 'OK' เพื่อยอมรับและดำเนินการต่อ");
+            const confirmed = confirm("⚠️ คำเตือนสำคัญจากทางร้าน\n\nคุณได้ตรวจสอบรายการสั่งซื้อเรียบร้อยแล้ว ทางร้านจะไม่รับผิดชอบใดๆ ทั้งสิ้นหากท่านสั่งสินค้าผิดรุ่น ผิดขนาด หรือต้องการแก้ไขบิลหลังจากยืนยันรายการนี้ ท่านจะต้องทำรายการสั่งซื้อใหม่ทั้งหมดเท่านั้น\n\nกด 'OK' เพื่อยอมรับและดำเนินการต่อ");
             if (!confirmed) return;
 
             document.getElementById('btn-initial-confirm').classList.add('hidden');
             document.getElementById('post-confirm-actions').classList.remove('hidden');
-            alert("✅ ยืนยันการจ่ายเงินและบันทึกรายการค้างส่งสำเร็จ!");
+            alert("✅ ยืนยันการจ่ายเงินสำเร็จ! ตอนนี้ท่านสามารถตรวจสอบบิล A4 หรือบันทึก PDF / ส่ง LINE OA ได้แล้วค่ะ");
         }
 
         function generateBillData() {
@@ -750,33 +803,20 @@
 
         function buildReceiptHTML(bill, containerId) {
             let itemsHtml = '';
-            let rowIdx = 1;
-            bill.items.forEach((item) => {
-                // รายการปกติ
+            bill.items.forEach((item, idx) => {
+                let nameStyle = item.isBackorder ? 'text-amber-700 font-bold' : 'font-semibold';
                 itemsHtml += `
                     <tr>
-                        <td class="p-2 border text-center">${rowIdx++}</td>
-                        <td class="p-2 border font-semibold">${item.name} (${item.unit})</td>
-                        <td class="p-2 border text-center">${item.requestedQty}</td>
+                        <td class="p-2 border text-center">${idx + 1}</td>
+                        <td class="p-2 border ${nameStyle}">${item.name}</td>
+                        <td class="p-2 border text-center">${item.qty} ${item.unit}</td>
                         <td class="p-2 border text-right">${item.price.toLocaleString()}</td>
-                        <td class="p-2 border text-right font-bold">${(item.price * item.requestedQty).toLocaleString()}</td>
+                        <td class="p-2 border text-right font-bold">${(item.price * item.qty).toLocaleString()}</td>
                     </tr>
                 `;
-                // หากมีรายการคงค้างส่ง ให้แสดงรายการพ่วงในราคา 0 บาท
-                if(item.backorderQty > 0) {
-                    itemsHtml += `
-                        <tr class="bg-amber-50/60 text-amber-900">
-                            <td class="p-2 border text-center">${rowIdx++}</td>
-                            <td class="p-2 border font-semibold">📦 ${item.name} (${item.unit}) <span class="text-amber-700 font-bold">(สินค้าคงค้างส่ง)</span></td>
-                            <td class="p-2 border text-center font-bold">${item.backorderQty}</td>
-                            <td class="p-2 border text-right">0.00</td>
-                            <td class="p-2 border text-right font-bold">0.00</td>
-                        </tr>
-                    `;
-                }
             });
 
-            let slipStatusText = bill.hasSlip ? '📸(แนบสลิปแล้ว)' : '💵(ชำระด้วยเงินสด)';
+            let slipStatusText = bill.hasSlip ? '📸(แนบสลิปแล้ว)' : '💵(ชำระด้วยเงินสด - ไม่ต้องแนบสลิป)';
 
             document.getElementById(containerId).innerHTML = `
                 <div class="border-b-2 border-red-700 pb-4 mb-4 flex justify-between items-start">
@@ -815,7 +855,7 @@
                 <div class="flex justify-between items-start text-xs bg-red-50/50 p-3 rounded-2xl border border-red-100">
                     <div>
                         <p class="font-bold text-gray-800">หมายเหตุ:</p>
-                        <p class="italic text-gray-500">- จัดส่งด่วน สุราษฎร์ธานี (รวมรายการค้างส่ง 0 บาท) -</p>
+                        <p class="italic text-gray-500">- จัดส่งด่วน สุราษฎร์ธานี (รวมรายการสินค้าคงค้างส่ง 0 บาท) -</p>
                     </div>
                     <div class="w-1/2 space-y-1">
                         <div class="flex justify-between"><span>มูลค่าสินค้า:</span> <span>${bill.subtotal.toLocaleString()} ฿</span></div>
@@ -840,8 +880,8 @@
                 margin:        5,
                 filename:      `Invoice_${bill.taxId}.pdf`,
                 image:         { type: 'jpeg', quality: 0.98 },
-                html2canvas:   { scale: 2, useCORS: true },
-                jsPDF:         { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             html2pdf().from(element).set(opt).save().then(() => {
@@ -852,20 +892,14 @@
 
         function confirmAndShareLine() {
             const bill = generateBillData();
-            let itemsText = bill.items.map(i => {
-                let txt = `• ${i.name} (${i.unit}) x ${i.requestedQty} = ${(i.price * i.requestedQty).toLocaleString()} ฿`;
-                if(i.backorderQty > 0) {
-                    txt += `\n  └ 📦 ค้างส่ง: ${i.backorderQty} ${i.unit} (0.00 ฿)`;
-                }
-                return txt;
-            }).join('\n');
-
+            let itemsText = bill.items.map(i => `• ${i.name} x ${i.qty} ${i.unit} = ${(i.price * i.qty).toLocaleString()} ฿`).join('\n');
             let lineMessage = `🐾 *คำสั่งซื้อใหม่: ${bill.taxId}* 🐾\n` +
                             `🏢 ร้าน: ${bill.member}\n` +
                             `📅 วันที่: ${bill.date} ${bill.time}\n\n` +
-                            `📦 *รายการสินค้า:*\n${itemsText}\n\n` +
+                            `📦 *รายการสินค้า (รวมสินค้าคงค้างส่ง):*\n${itemsText}\n\n` +
                             `💰 *ยอดชำระสุทธิ: ${bill.net.toLocaleString()} บาท* (รวม VAT และส่วนลด 2%)\n` +
                             `📱 ชำระเงินผ่าน: ${bill.payMethod}\n\n` +
+                            `_⚠️ หมายเหตุ: ตรวจสอบเรียบร้อยแล้ว ไม่รับแก้ไขหรือเปลี่ยนบิลภายหลัง_\n` +
                             `_ขอบคุณที่ใช้บริการสถานีสัตว์เลี้ยงTH สุราษฎร์ธานี_`;
 
             const lineShareUrl = `https://line.me/R/msg/text/?` + encodeURIComponent(lineMessage);
@@ -882,30 +916,23 @@
                 itemsHtml = `<p class="text-center py-6 text-gray-400 text-xs font-medium">ยังไม่มีสินค้าในตะกร้าของคุณ</p>`;
             } else {
                 cartItems.forEach((item, idx) => {
-                    let sum = item.price * item.requestedQty;
+                    let sum = item.price * item.qty;
                     total += sum; 
-                    totalQty += item.requestedQty;
+                    totalQty += item.qty;
 
-                    let backorderBadge = '';
-                    if(item.backorderQty > 0) {
-                        backorderBadge = `<div class="text-[11px] text-amber-700 font-bold mt-0.5 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 inline-block">⚠️ สต๊อกไม่พอ (ส่งทันที ${item.qty} | ค้างส่ง ${item.backorderQty})</div>`;
-                    } else {
-                        backorderBadge = `<div class="text-[11px] text-emerald-700 font-bold mt-0.5">✅ พร้อมส่ง (สต๊อกพอ)</div>`;
-                    }
+                    let badgeHtml = item.isBackorder ? 
+                        `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md block mt-0.5">📦 สินค้าคงค้างส่ง (ราคา 0 บาท)</span>` : 
+                        `<span class="text-red-600 font-bold mt-0.5 block">${sum.toLocaleString()} ฿ (${item.unit})</span>`;
 
                     itemsHtml += `
-                        <div class="border rounded-2xl p-3 flex flex-col gap-2 bg-gray-50/80 text-xs shadow-sm">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <div class="font-bold text-gray-900 text-sm">${item.name} (${item.unit})</div>
-                                    <div class="text-red-600 font-bold mt-0.5">${sum.toLocaleString()} ฿</div>
-                                    ${backorderBadge}
-                                </div>
-                                <button onclick="removeCartItem(${idx})" class="text-red-500 font-bold p-1 text-base hover:scale-110 transition" title="ลบสินค้า">🗑️</button>
+                        <div class="border rounded-2xl p-3 flex justify-between items-center bg-gray-50/80 text-xs shadow-sm">
+                            <div class="pr-2">
+                                <div class="font-bold text-gray-900 text-sm">${item.name}</div>
+                                ${badgeHtml}
                             </div>
-                            <div class="flex items-center justify-between border-t pt-2">
-                                <span class="text-gray-600 font-medium">จำนวนสั่งซื้อ (${item.unit}):</span>
-                                <input type="number" min="1" value="${item.requestedQty}" onchange="updateCartRequestedQty(${idx}, this.value)" class="w-20 border-2 rounded-xl text-center py-1 font-bold bg-white">
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="1" value="${item.qty}" onchange="updateCartQty(${idx}, this.value)" class="w-16 border-2 rounded-xl text-center py-1.5 font-bold bg-white">
+                                <button onclick="removeCartItem(${idx})" class="text-red-500 font-bold p-1 text-base hover:scale-110 transition" title="ลบสินค้า">🗑️</button>
                             </div>
                         </div>
                     `;
@@ -932,7 +959,7 @@
                     <button onclick="clearSelectedMember()" class="text-red-500 font-bold text-base px-2 bg-white rounded-full shadow-sm">✕</button>
                 </div>
 
-                <div class="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
+                <div class="space-y-2 max-h-[280px] overflow-y-auto pr-1">
                     ${itemsHtml}
                 </div>
 
