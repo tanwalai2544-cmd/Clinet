@@ -6,16 +6,10 @@
     <title>Pet's Station B2B • Mobile Wholesale Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- โหลดไลบรารี html2pdf.js สำหรับแปลงบิลเป็น PDF และดาวน์โหลด/แชร์ -->
+    <script src="https://cdnjs.cloudflare.com/ajax5/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: 'Sarabun', sans-serif; -webkit-tap-highlight-color: transparent; }
-        @media print {
-            body * { visibility: hidden; }
-            #receipt-printable-area, #receipt-printable-area * { visibility: visible; }
-            #receipt-printable-area {
-                position: absolute; left: 0; top: 0; width: 210mm; min-height: 297mm;
-                background: white !important; border: none !important; box-shadow: none !important; margin: 0; padding: 15mm;
-            }
-        }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
     </style>
@@ -36,8 +30,8 @@
             </div>
 
             <div class="flex bg-gray-100 p-1.5 rounded-2xl mb-5 text-xs font-bold">
-                <button onclick="switchAuthTab('login')" id="tab-login-btn" class="flex-1 py-3 rounded-xl bg-white text-red-700 shadow transition">เข้าสู่ระบบ</button>
-                <button onclick="switchAuthTab('forgot')" id="tab-forgot-btn" class="flex-1 py-3 rounded-xl text-gray-500 transition">ขอรับรหัสผ่าน</button>
+                <button onclick="switchAuthTab('login')" id="tab-login-btn" class="flex-1 py-3 rounded-xl bg-white text-red-700 shadow font-bold">เข้าสู่ระบบ</button>
+                <button onclick="switchAuthTab('forgot')" id="tab-forgot-btn" class="flex-1 py-3 rounded-xl text-gray-500 font-bold">ขอรับรหัสผ่าน</button>
             </div>
 
             <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4 text-sm">
@@ -49,9 +43,7 @@
                     <label class="block font-bold text-gray-700 mb-1.5 text-xs">รหัสผ่าน</label>
                     <div class="relative">
                         <input type="password" id="login-pass" required placeholder="กรอกรหัสผ่านที่ได้รับ" class="w-full border-2 border-gray-200 rounded-2xl px-4 py-3.5 text-sm font-semibold bg-gray-50 focus:border-red-600 focus:outline-none pr-12">
-                        <button type="button" onclick="togglePassword('login-pass', 'eye-login')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 text-lg">
-                            <span id="eye-login">👁️</span>
-                        </button>
+                        <button type="button" onclick="togglePassword('login-pass')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 text-lg">👁️</button>
                     </div>
                 </div>
                 <button type="submit" class="w-full bg-gradient-to-r from-red-600 to-rose-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-red-600/30 text-base">
@@ -87,10 +79,9 @@
     </div>
 
 
-    <!-- ================= 2. เลนหลักระบบสั่งซื้อ (UI ตัวหนังสือใหญ่ ชัดเจน) ================= -->
+    <!-- ================= 2. เลนหลักระบบสั่งซื้อ ================= -->
     <div id="app-staff-content" class="hidden flex flex-col min-h-screen bg-slate-100 pb-24">
         
-        <!-- Header -->
         <header class="bg-gradient-to-r from-red-700 to-rose-800 text-white shadow-lg sticky top-0 z-30 px-4 py-3">
             <div class="flex justify-between items-center gap-2">
                 <div class="flex items-center space-x-2.5">
@@ -112,14 +103,11 @@
             </div>
         </header>
 
-        <!-- Main Content -->
         <main class="w-full p-3 sm:p-5 flex-grow space-y-4 max-w-4xl mx-auto">
             
-            <!-- ส่วนค้นหาและ Filter เรียงราคา -->
             <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
                 <div class="flex justify-between items-center">
                     <h2 class="text-base font-black text-red-700">🛒 แคตตาล็อกสินค้าค้าส่ง</h2>
-                    <!-- ปุ่มกดสลับเรียงราคา (ถูกสุดไปแพงสุด / แพงสุดไปถูกสุด) -->
                     <button onclick="togglePriceSort()" id="sortPriceBtn" class="bg-red-50 hover:bg-red-100 text-red-700 font-bold px-3.5 py-2 rounded-2xl text-xs border border-red-200 transition flex items-center gap-1 shadow-sm">
                         <span>📊 เรียงราคา: ปกติ</span>
                     </button>
@@ -148,13 +136,11 @@
                 </div>
             </div>
 
-            <!-- รายการสินค้า (Card ใหญ่ ตัวหนังสือชัดเจน) -->
             <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
                 <h3 class="text-sm font-bold text-gray-700">📦 รายการสินค้าแนะนำ (แตะเพื่อสั่งซื้อ)</h3>
                 <div id="googleSheetProductList" class="space-y-2.5 max-h-[420px] overflow-y-auto pr-1"></div>
             </div>
 
-            <!-- ส่วนตะกร้าสินค้า -->
             <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
                 <div class="flex justify-between items-center border-b pb-2.5">
                     <h2 class="text-base font-black text-red-700">🧾 ตะกร้าสินค้าออนไลน์</h2>
@@ -176,7 +162,6 @@
                     <p class="text-center py-6 text-gray-400 text-xs font-medium">ยังไม่มีสินค้าในตะกร้าของคุณ</p>
                 </div>
 
-                <!-- สรุปยอด -->
                 <div class="border-t pt-3 space-y-1.5 text-xs bg-red-50/60 p-3.5 rounded-2xl border border-red-100">
                     <div class="flex justify-between text-gray-600 font-bold">
                         <span>จำนวนสินค้ารวม:</span>
@@ -199,7 +184,7 @@
         </main>
     </div>
 
-    <!-- ================= Modals ต่างๆ (ประวัติ, ชำระเงิน, เลือกร้าน ฯลฯ) ================= -->
+    <!-- ================= Modals ================= -->
     <div id="staff-report-modal" class="hidden fixed inset-0 bg-black/80 z-[150] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-5 relative flex flex-col max-h-[90vh]">
             <button onclick="closeStaffReportModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
@@ -215,7 +200,6 @@
         </div>
     </div>
 
-    <!-- Modal เลือกร้านค้า (F4) -->
     <div id="member-modal" class="hidden fixed inset-0 bg-black/80 z-[130] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 relative flex flex-col max-h-[90vh]">
             <button onclick="closeMemberModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
@@ -224,7 +208,7 @@
         </div>
     </div>
 
-    <!-- Modal Checkout ชำระเงิน -->
+    <!-- Checkout Modal พร้อมเลือกดาวน์โหลด PDF หรือส่งต่อ LINE OA -->
     <div id="checkout-modal" class="hidden fixed inset-0 bg-black/80 z-[150] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 relative max-h-[95vh] overflow-y-auto space-y-4 text-sm">
             <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
@@ -240,7 +224,7 @@
                 <input type="number" id="pay-modal-extra-discount" readonly class="w-28 border rounded-xl p-2 text-right font-black text-red-600 bg-gray-100 text-sm">
             </div>
 
-            <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-200 flex justify-between items-center text-xs font-bold">
+            <div class="bg-gray-50 p-3.5 rounded-2xl border border-red-200 flex justify-between items-center text-xs font-bold">
                 <span>VAT 7% (ล็อกติ๊กไว้ตลอด):</span>
                 <span id="pay-modal-vat-amount" class="text-gray-700 text-sm">0.00 ฿</span>
             </div>
@@ -274,14 +258,64 @@
                 <input type="file" id="payment-slip-file" accept="image/*" class="w-full text-xs text-gray-500 file:py-1 file:px-2 file:rounded-lg file:bg-red-50 file:text-red-700">
             </div>
 
-            <div class="flex justify-between items-center pt-3 border-t">
-                <select id="print-option-select" class="border rounded-xl px-3 py-2.5 text-xs bg-white font-semibold">
-                    <option value="noprint">ไม่พิมพ์บิล</option>
-                    <option value="print">พิมพ์บิล A4</option>
-                </select>
-                <button onclick="confirmCheckout()" class="bg-gradient-to-r from-red-600 to-rose-700 text-white font-black px-6 py-3 rounded-2xl text-sm shadow">
-                    💾 ยืนยันการชำระเงิน
+            <div class="flex flex-col gap-2.5 pt-3 border-t">
+                <button onclick="confirmAndDownloadPDF()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 text-white font-black py-3.5 rounded-2xl text-sm shadow flex items-center justify-center gap-2">
+                    <span>📥</span> ยืนยันคำสั่งซื้อ & ดาวน์โหลดบิล PDF
                 </button>
+                <button onclick="confirmAndShareLine()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-sm shadow flex items-center justify-center gap-2">
+                    <span>💬</span> ยืนยันคำสั่งซื้อ & แชร์ต่อผ่าน LINE OA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Printable Area สำหรับแปลงเป็น PDF โดยอัตโนมัติ -->
+    <div id="pdf-printable-area" class="hidden fixed -left-[9999px] top-0 bg-white p-8 text-sm text-gray-900" style="width: 210mm;">
+        <div class="border-b-2 border-red-700 pb-4 mb-4 flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-black text-red-700">สถานีสัตว์เลี้ยงTH (ค้าส่งออนไลน์)</h1>
+                <p class="text-xs text-gray-600">คลังสินค้าและศูนย์กระจายสินค้า สุราษฎร์ธานี | โทร: 081-314-3599</p>
+            </div>
+            <div class="text-right">
+                <h2 class="text-lg font-bold text-gray-800">ใบส่งสินค้า / ใบแจ้งหนี้ (B2B Invoice)</h2>
+                <p class="text-xs font-mono font-bold text-red-600 mt-1" id="pdf-rec-taxid"></p>
+                <p class="text-xs text-gray-500" id="pdf-rec-datetime"></p>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-2xl text-xs mb-4 grid grid-cols-2 gap-4">
+            <div>
+                <p class="font-bold text-gray-700">🏢 ร้านค้าคู่ค้า:</p>
+                <p id="pdf-rec-member" class="font-semibold"></p>
+            </div>
+            <div>
+                <p class="font-bold text-gray-700">📍 สถานะการจัดส่ง:</p>
+                <p class="text-emerald-700 font-bold">ชำระเงินเรียบร้อย / รอจัดส่งสินค้า</p>
+            </div>
+        </div>
+        <table class="w-full text-left border-collapse border border-gray-200 text-xs mb-4">
+            <thead>
+                <tr class="bg-red-700 text-white font-bold text-center">
+                    <th class="p-2 border">ลำดับ</th>
+                    <th class="p-2 border">รายการสินค้าค้าส่ง</th>
+                    <th class="p-2 border">จำนวน</th>
+                    <th class="p-2 border text-right">ราคา/หน่วย</th>
+                    <th class="p-2 border text-right">จำนวนเงิน (บาท)</th>
+                </tr>
+            </thead>
+            <tbody id="pdf-rec-items" class="divide-y"></tbody>
+        </table>
+        <div class="flex justify-between items-start text-xs bg-red-50/50 p-4 rounded-2xl border border-red-100">
+            <div>
+                <p class="font-bold text-gray-800">หมายเหตุ / ข้อมูลขนส่ง:</p>
+                <p class="italic text-gray-500">- จัดส่งด่วน สุราษฎร์ธานี -</p>
+            </div>
+            <div class="w-1/2 space-y-1">
+                <div class="flex justify-between"><span>มูลค่าสินค้า (Subtotal):</span> <span id="pdf-rec-subtotal"></span></div>
+                <div class="flex justify-between text-red-600"><span>ส่วนลดพิเศษ (2%):</span> <span id="pdf-rec-disc"></span></div>
+                <div class="flex justify-between"><span>VAT 7%:</span> <span id="pdf-rec-vat"></span></div>
+                <div class="flex justify-between font-black text-red-700 text-sm border-t pt-1">
+                    <span>ยอดชำระสุทธิ:</span> <span id="pdf-rec-net"></span>
+                </div>
             </div>
         </div>
     </div>
@@ -302,7 +336,7 @@
         let currentUser = null;
         let cartItems = [];
         let heldBills = [null, null, null];
-        let currentSortOrder = 'none'; // 'none', 'asc' (ถูกไปแพง), 'desc' (แพงไปถูก)
+        let currentSortOrder = 'none';
         let selectedMemberData = null;
         let completedSalesBills = [];
 
@@ -332,7 +366,7 @@
         }
         setInterval(updateLiveTimestamp, 1000);
 
-        function togglePassword(id, eyeId) {
+        function togglePassword(id) {
             const input = document.getElementById(id);
             input.type = input.type === "password" ? "text" : "password";
         }
@@ -376,17 +410,16 @@
             document.getElementById('auth-wrapper').classList.remove('hidden');
         }
 
-        // ฟังก์ชันเรียงราคา (ถูกสุดไปแพงสุด / แพงสุดไปถูกสุด / ปรกติ)
         function togglePriceSort() {
             const btn = document.getElementById('sortPriceBtn');
             if (currentSortOrder === 'none') {
-                currentSortOrder = 'asc'; // ถูกไปแพง
+                currentSortOrder = 'asc';
                 btn.innerHTML = `<span>📈 เรียง: ถูก ➡️ แพง</span>`;
             } else if (currentSortOrder === 'asc') {
-                currentSortOrder = 'desc'; // แพงไปถูก
+                currentSortOrder = 'desc';
                 btn.innerHTML = `<span>📉 เรียง: แพง ➡️ ถูก</span>`;
             } else {
-                currentSortOrder = 'none'; // ปกติ
+                currentSortOrder = 'none';
                 btn.innerHTML = `<span>📊 เรียงราคา: ปกติ</span>`;
             }
             filterProducts();
@@ -442,7 +475,6 @@
             });
         }
 
-        // Cart & Checkout
         function addToCart(name, price) {
             const ex = cartItems.find(i => i.name === name);
             if(ex) ex.qty += 1;
@@ -484,25 +516,101 @@
             document.getElementById('payment-qr-box').classList.toggle('hidden', method !== 'transfer' && method !== 'qr');
         }
 
-        function confirmCheckout() {
+        // ฟังก์ชันสร้างข้อมูลบิลสำหรับ PDF
+        function generateBillData() {
             const netStr = document.getElementById('pay-modal-net').innerText.replace(/,/g, '').replace(' ฿', '');
             const net = parseFloat(netStr) || 0;
+            const discount = (currentSubtotal * 2) / 100;
+            const vat = (currentSubtotal - discount) * 0.07;
             const now = new Date();
             const orderId = "WH-" + now.getFullYear().toString() + String(now.getMonth() + 1).padStart(2, '0') + "001";
 
-            completedSalesBills.unshift({
+            return {
                 taxId: orderId,
                 date: now.toLocaleDateString('th-TH'),
                 time: now.toLocaleTimeString('th-TH'),
-                member: selectedMemberData ? selectedMemberData.petName : 'ทั่วไป',
+                member: selectedMemberData ? `${selectedMemberData.petName} (${selectedMemberData.ownerName})` : 'ทั่วไป',
+                subtotal: currentSubtotal,
+                discount: discount,
+                vat: vat,
                 net: net,
                 items: JSON.parse(JSON.stringify(cartItems)),
                 payMethod: document.querySelector('input[name="payMethod"]:checked').value
-            });
+            };
+        }
 
+        // ยืนยันการสั่งซื้อ & ดาวน์โหลดไฟล์ PDF ลงเครื่อง
+        function confirmAndDownloadPDF() {
+            const bill = generateBillData();
+            preparePDFContent(bill);
+
+            const element = document.getElementById('pdf-printable-area');
+            element.classList.remove('hidden');
+
+            const opt = {
+                margin:       5,
+                filename:     `Invoice_${bill.taxId}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().from(element).set(opt).save().then(() => {
+                element.classList.add('hidden');
+                finalizeCheckoutSuccess(bill);
+            });
+        }
+
+        // ยืนยันการสั่งซื้อ & แชร์ต่อผ่าน LINE / LINE OA
+        function confirmAndShareLine() {
+            const bill = generateBillData();
+            
+            // สร้างข้อความสรุปสำหรับส่งเข้าแชท LINE OA
+            let itemsText = bill.items.map(i => `• ${i.name} x ${i.qty} = ${(i.price * i.qty).toLocaleString()} ฿`).join('\n');
+            let lineMessage = `🐾 *คำสั่งซื้อใหม่: ${bill.taxId}* 🐾\n` +
+                              `🏢 ร้าน: ${bill.member}\n` +
+                              `📅 วันที่: ${bill.date} ${bill.time}\n\n` +
+                              `📦 *รายการสินค้า:*\n${itemsText}\n\n` +
+                              `💰 *ยอดชำระสุทธิ: ${bill.net.toLocaleString()} บาท* (รวม VAT และส่วนลด 2%)\n` +
+                              `📱 ชำระเงินผ่าน: ${bill.payMethod}\n\n` +
+                              `_ขอบคุณที่ใช้บริการสถานีสัตว์เลี้ยงTH สุราษฎร์ธานี_`;
+
+            // เปิดลิงก์แชร์ไปยัง LINE ทันที
+            const lineShareUrl = `https://line.me/R/msg/text/?` + encodeURIComponent(lineMessage);
+            window.open(lineShareUrl, '_blank');
+
+            finalizeCheckoutSuccess(bill);
+        }
+
+        function preparePDFContent(bill) {
+            document.getElementById('pdf-rec-taxid').innerText = `เลขที่: ${bill.taxId}`;
+            document.getElementById('pdf-rec-datetime').innerText = `วันที่: ${bill.date} ${bill.time}`;
+            document.getElementById('pdf-rec-member').innerText = bill.member;
+            document.getElementById('pdf-rec-subtotal').innerText = bill.subtotal.toLocaleString() + ' ฿';
+            document.getElementById('pdf-rec-disc').innerText = '-' + bill.discount.toLocaleString() + ' ฿';
+            document.getElementById('pdf-rec-vat').innerText = bill.vat.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' ฿';
+            document.getElementById('pdf-rec-net').innerText = bill.net.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' ฿';
+
+            const tbody = document.getElementById('pdf-rec-items');
+            tbody.innerHTML = '';
+            bill.items.forEach((item, idx) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2 border text-center">${idx + 1}</td>
+                        <td class="p-2 border font-semibold">${item.name}</td>
+                        <td class="p-2 border text-center">${item.qty}</td>
+                        <td class="p-2 border text-right">${item.price.toLocaleString()}</td>
+                        <td class="p-2 border text-right font-bold">${(item.price * item.qty).toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function finalizeCheckoutSuccess(bill) {
+            completedSalesBills.unshift(bill);
             closeCheckoutModal();
             clearCart();
-            alert(`สั่งซื้อสำเร็จ! เลขที่ ${orderId} ยอดชำระ ${net.toLocaleString()} บาท`);
+            alert(`✅ บันทึกคำสั่งซื้อ ${bill.taxId} สำเร็จเรียบร้อย!`);
         }
 
         function renderCart() {
