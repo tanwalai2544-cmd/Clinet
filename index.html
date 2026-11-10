@@ -6,12 +6,16 @@
     <title>Pet's Station B2B • Mobile Wholesale Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- โหลดไลบรารี html2pdf.js สำหรับแปลงบิลเป็น PDF และดาวน์โหลด/แชร์ -->
-    <script src="https://cdnjs.cloudflare.com/ajax5/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: 'Sarabun', sans-serif; -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        @media print {
+            body * { visibility: hidden; }
+            #pdf-printable-area, #pdf-printable-area * { visibility: visible; }
+            #pdf-printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-gray-900 min-h-screen flex flex-col selection:bg-red-600 selection:text-white text-base">
@@ -208,7 +212,7 @@
         </div>
     </div>
 
-    <!-- Checkout Modal พร้อมเลือกดาวน์โหลด PDF หรือส่งต่อ LINE OA -->
+    <!-- Checkout Modal พร้อมระบบผสมเงินสด/เงินโอน และตรวจสอบยอด -->
     <div id="checkout-modal" class="hidden fixed inset-0 bg-black/80 z-[150] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 relative max-h-[95vh] overflow-y-auto space-y-4 text-sm">
             <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
@@ -224,7 +228,7 @@
                 <input type="number" id="pay-modal-extra-discount" readonly class="w-28 border rounded-xl p-2 text-right font-black text-red-600 bg-gray-100 text-sm">
             </div>
 
-            <div class="bg-gray-50 p-3.5 rounded-2xl border border-red-200 flex justify-between items-center text-xs font-bold">
+            <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-200 flex justify-between items-center text-xs font-bold">
                 <span>VAT 7% (ล็อกติ๊กไว้ตลอด):</span>
                 <span id="pay-modal-vat-amount" class="text-gray-700 text-sm">0.00 ฿</span>
             </div>
@@ -252,73 +256,67 @@
                 </label>
             </div>
 
+            <!-- ช่องกรอกชำระแบบผสม (สดเท่าไหร่ / โอนเท่าไหร่) -->
+            <div id="mixed-payment-box" class="hidden bg-slate-50 border p-3.5 rounded-2xl space-y-3">
+                <p class="font-bold text-xs text-red-700">🔀 ระบุยอดชำระแบบผสม (เงินสด + เงินโอน)</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-700 mb-1">💵 เงินสด (บาท)</label>
+                        <input type="number" id="mixed-cash-input" oninput="calculateMixedPayment()" step="0.01" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-700 mb-1">📱 เงินโอน (บาท)</label>
+                        <input type="number" id="mixed-transfer-input" oninput="calculateMixedPayment()" step="0.01" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white" placeholder="0.00">
+                    </div>
+                </div>
+                <!-- แจ้งเตือนสถานะเงินเกิน / เงินขาด -->
+                <div id="mixed-status-alert" class="text-xs font-bold p-2.5 rounded-xl text-center hidden"></div>
+            </div>
+
             <div id="payment-qr-box" class="bg-gray-50 border p-4 rounded-2xl text-center space-y-2 text-xs">
                 <p class="font-bold">🏦 กสิกรไทย: <span class="text-red-700">123-4-56789-0</span></p>
                 <div class="bg-white p-2 rounded-xl inline-block border font-mono font-bold text-red-600">[ QR CODE READY ]</div>
-                <input type="file" id="payment-slip-file" accept="image/*" class="w-full text-xs text-gray-500 file:py-1 file:px-2 file:rounded-lg file:bg-red-50 file:text-red-700">
             </div>
 
+            <!-- ช่องเพิ่มไฟล์หลักฐานการชำระเงิน -->
+            <div class="bg-gray-50 border p-3 rounded-2xl text-xs space-y-1">
+                <label class="block font-bold text-gray-700">📸 แนบหลักฐานการชำระเงิน (สลิปโอนเงิน):</label>
+                <input type="file" id="payment-slip-file" accept="image/*" class="w-full text-xs text-gray-500 file:py-1 file:px-2 file:rounded-lg file:bg-red-50 file:text-red-700 cursor-pointer">
+            </div>
+
+            <!-- ปุ่มเปิด Pop-up ดูบิล A4 และปุ่มยืนยันการชำระเงิน -->
             <div class="flex flex-col gap-2.5 pt-3 border-t">
-                <button onclick="confirmAndDownloadPDF()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 text-white font-black py-3.5 rounded-2xl text-sm shadow flex items-center justify-center gap-2">
-                    <span>📥</span> ยืนยันคำสั่งซื้อ & ดาวน์โหลดบิล PDF
+                <button onclick="openReceiptModalPreview()" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-3 rounded-2xl text-xs shadow transition flex items-center justify-center gap-1.5">
+                    <span>📄</span> ตรวจสอบรายละเอียดบิล (A4 Preview)
                 </button>
-                <button onclick="confirmAndShareLine()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-sm shadow flex items-center justify-center gap-2">
-                    <span>💬</span> ยืนยันคำสั่งซื้อ & แชร์ต่อผ่าน LINE OA
-                </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="confirmAndDownloadPDF()" id="btn-confirm-pdf" class="bg-red-600 hover:bg-red-700 text-white font-black py-3.5 rounded-2xl text-xs shadow flex items-center justify-center gap-1.5">
+                        <span>📥</span> บันทึก PDF
+                    </button>
+                    <button onclick="confirmAndShareLine()" id="btn-confirm-line" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs shadow flex items-center justify-center gap-1.5">
+                        <span>💬</span> ส่ง LINE OA
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Pop-up แสดงบิลขนาด A4 ละเอียดครบถ้วน ================= -->
+    <div id="receipt-modal-preview" class="hidden fixed inset-0 bg-black/80 z-[170] flex items-center justify-center p-3 backdrop-blur-md">
+        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl p-6 relative max-h-[92vh] flex flex-col">
+            <button onclick="closeReceiptModalPreview()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
+            <h3 class="text-base font-bold text-red-700 mb-3 flex items-center gap-2"><span>📄</span> ตัวอย่างบิลขนาด A4 (ตรวจสอบความถูกต้อง)</h3>
+            
+            <div class="overflow-y-auto flex-grow border border-gray-200 rounded-2xl p-5 bg-white shadow-inner" id="receipt-preview-container"></div>
+            
+            <div class="pt-3 flex justify-end">
+                <button onclick="closeReceiptModalPreview()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-6 py-2.5 rounded-xl text-xs">ปิดหน้าต่าง</button>
             </div>
         </div>
     </div>
 
     <!-- Hidden Printable Area สำหรับแปลงเป็น PDF โดยอัตโนมัติ -->
-    <div id="pdf-printable-area" class="hidden fixed -left-[9999px] top-0 bg-white p-8 text-sm text-gray-900" style="width: 210mm;">
-        <div class="border-b-2 border-red-700 pb-4 mb-4 flex justify-between items-start">
-            <div>
-                <h1 class="text-2xl font-black text-red-700">สถานีสัตว์เลี้ยงTH (ค้าส่งออนไลน์)</h1>
-                <p class="text-xs text-gray-600">คลังสินค้าและศูนย์กระจายสินค้า สุราษฎร์ธานี | โทร: 081-314-3599</p>
-            </div>
-            <div class="text-right">
-                <h2 class="text-lg font-bold text-gray-800">ใบส่งสินค้า / ใบแจ้งหนี้ (B2B Invoice)</h2>
-                <p class="text-xs font-mono font-bold text-red-600 mt-1" id="pdf-rec-taxid"></p>
-                <p class="text-xs text-gray-500" id="pdf-rec-datetime"></p>
-            </div>
-        </div>
-        <div class="bg-gray-50 p-4 rounded-2xl text-xs mb-4 grid grid-cols-2 gap-4">
-            <div>
-                <p class="font-bold text-gray-700">🏢 ร้านค้าคู่ค้า:</p>
-                <p id="pdf-rec-member" class="font-semibold"></p>
-            </div>
-            <div>
-                <p class="font-bold text-gray-700">📍 สถานะการจัดส่ง:</p>
-                <p class="text-emerald-700 font-bold">ชำระเงินเรียบร้อย / รอจัดส่งสินค้า</p>
-            </div>
-        </div>
-        <table class="w-full text-left border-collapse border border-gray-200 text-xs mb-4">
-            <thead>
-                <tr class="bg-red-700 text-white font-bold text-center">
-                    <th class="p-2 border">ลำดับ</th>
-                    <th class="p-2 border">รายการสินค้าค้าส่ง</th>
-                    <th class="p-2 border">จำนวน</th>
-                    <th class="p-2 border text-right">ราคา/หน่วย</th>
-                    <th class="p-2 border text-right">จำนวนเงิน (บาท)</th>
-                </tr>
-            </thead>
-            <tbody id="pdf-rec-items" class="divide-y"></tbody>
-        </table>
-        <div class="flex justify-between items-start text-xs bg-red-50/50 p-4 rounded-2xl border border-red-100">
-            <div>
-                <p class="font-bold text-gray-800">หมายเหตุ / ข้อมูลขนส่ง:</p>
-                <p class="italic text-gray-500">- จัดส่งด่วน สุราษฎร์ธานี -</p>
-            </div>
-            <div class="w-1/2 space-y-1">
-                <div class="flex justify-between"><span>มูลค่าสินค้า (Subtotal):</span> <span id="pdf-rec-subtotal"></span></div>
-                <div class="flex justify-between text-red-600"><span>ส่วนลดพิเศษ (2%):</span> <span id="pdf-rec-disc"></span></div>
-                <div class="flex justify-between"><span>VAT 7%:</span> <span id="pdf-rec-vat"></span></div>
-                <div class="flex justify-between font-black text-red-700 text-sm border-t pt-1">
-                    <span>ยอดชำระสุทธิ:</span> <span id="pdf-rec-net"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div id="pdf-printable-area" class="hidden fixed -left-[9999px] top-0 bg-white p-8 text-sm text-gray-900" style="width: 210mm;"></div>
 
     <!-- Hold Bill Modal (F8) -->
     <div id="hold-bill-modal" class="hidden fixed inset-0 bg-black/80 z-[110] flex items-center justify-center p-4 backdrop-blur-md">
@@ -339,6 +337,7 @@
         let currentSortOrder = 'none';
         let selectedMemberData = null;
         let completedSalesBills = [];
+        let isMixedPaymentValid = true;
 
         let membersData = [
             { petName: "เพ็ทช็อปสุราษฎร์", ownerName: "คุณธัญวลัย", address: "ตลาดศาลเจ้า อ.เมือง สุราษฎร์ธานี", phone: "0813143599" },
@@ -507,6 +506,13 @@
             document.getElementById('pay-modal-vat-amount').innerText = vat.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' ฿';
             document.getElementById('pay-modal-net').innerText = net.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' ฿';
             
+            // รีเซ็ตฟอร์มผสม
+            document.getElementById('mixed-cash-input').value = '';
+            document.getElementById('mixed-transfer-input').value = '';
+            document.getElementById('mixed-status-alert').classList.add('hidden');
+            isMixedPaymentValid = true;
+
+            handlePaymentMethodChange();
             document.getElementById('checkout-modal').classList.remove('hidden');
         }
         function closeCheckoutModal() { document.getElementById('checkout-modal').classList.add('hidden'); }
@@ -514,9 +520,51 @@
         function handlePaymentMethodChange() {
             const method = document.querySelector('input[name="payMethod"]:checked').value;
             document.getElementById('payment-qr-box').classList.toggle('hidden', method !== 'transfer' && method !== 'qr');
+            document.getElementById('mixed-payment-box').classList.toggle('hidden', method !== 'mixed');
+            if(method === 'mixed') {
+                calculateMixedPayment();
+            }
         }
 
-        // ฟังก์ชันสร้างข้อมูลบิลสำหรับ PDF
+        // คำนวณและตรวจสอบยอดชำระแบบผสม (สด + โอน)
+        function calculateMixedPayment() {
+            const netStr = document.getElementById('pay-modal-net').innerText.replace(/,/g, '').replace(' ฿', '');
+            const net = parseFloat(netStr) || 0;
+            const cash = parseFloat(document.getElementById('mixed-cash-input').value) || 0;
+            const transfer = parseFloat(document.getElementById('mixed-transfer-input').value) || 0;
+            const totalPaid = cash + transfer;
+            const diff = totalPaid - net;
+
+            const alertBox = document.getElementById('mixed-status-alert');
+            alertBox.classList.remove('hidden');
+
+            const btnPdf = document.getElementById('btn-confirm-pdf');
+            const btnLine = document.getElementById('btn-confirm-line');
+
+            if (Math.abs(diff) < 0.01) {
+                alertBox.innerText = `✅ ยอดชำระถูกต้องพอดีเป๊ะ (${totalPaid.toLocaleString()} บาท)`;
+                alertBox.className = "text-xs font-bold p-2.5 rounded-xl text-center bg-emerald-100 text-emerald-800 border border-emerald-300";
+                isMixedPaymentValid = true;
+                btnPdf.disabled = false; btnLine.disabled = false;
+                btnPdf.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnLine.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else if (diff < 0) {
+                alertBox.innerText = `❌ เงินยังไม่ครบ ขาดอีก ${Math.abs(diff).toLocaleString()} บาท (ไม่สามารถบันทึกได้)`;
+                alertBox.className = "text-xs font-bold p-2.5 rounded-xl text-center bg-red-100 text-red-800 border border-red-300";
+                isMixedPaymentValid = false;
+                btnPdf.disabled = true; btnLine.disabled = true;
+                btnPdf.classList.add('opacity-50', 'cursor-not-allowed');
+                btnLine.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                alertBox.innerText = `❌ เงินเกินมา ${diff.toLocaleString()} บาท (ไม่สามารถบันทึกได้ ต้องพอดีเท่านั้น)`;
+                alertBox.className = "text-xs font-bold p-2.5 rounded-xl text-center bg-amber-100 text-amber-900 border-amber-300";
+                isMixedPaymentValid = false;
+                btnPdf.disabled = true; btnLine.disabled = true;
+                btnPdf.classList.add('opacity-50', 'cursor-not-allowed');
+                btnLine.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
         function generateBillData() {
             const netStr = document.getElementById('pay-modal-net').innerText.replace(/,/g, '').replace(' ฿', '');
             const net = parseFloat(netStr) || 0;
@@ -524,6 +572,14 @@
             const vat = (currentSubtotal - discount) * 0.07;
             const now = new Date();
             const orderId = "WH-" + now.getFullYear().toString() + String(now.getMonth() + 1).padStart(2, '0') + "001";
+            const method = document.querySelector('input[name="payMethod"]:checked').value;
+
+            let payDetail = method;
+            if (method === 'mixed') {
+                const cash = document.getElementById('mixed-cash-input').value;
+                const transfer = document.getElementById('mixed-transfer-input').value;
+                payDetail = `ผสม (สด: ${cash} ฿, โอน: ${transfer} ฿)`;
+            }
 
             return {
                 taxId: orderId,
@@ -535,14 +591,103 @@
                 vat: vat,
                 net: net,
                 items: JSON.parse(JSON.stringify(cartItems)),
-                payMethod: document.querySelector('input[name="payMethod"]:checked').value
+                payMethod: payDetail,
+                hasSlip: document.getElementById('payment-slip-file').files.length > 0
             };
         }
 
-        // ยืนยันการสั่งซื้อ & ดาวน์โหลดไฟล์ PDF ลงเครื่อง
-        function confirmAndDownloadPDF() {
+        // Pop-up แสดงตัวอย่างบิล A4
+        function openReceiptModalPreview() {
+            const method = document.querySelector('input[name="payMethod"]:checked').value;
+            if(method === 'mixed' && !isMixedPaymentValid) {
+                alert('⚠️ กรุณาระบุยอดชำระแบบผสมให้ถูกต้องพอดีกับยอดสุทธิ จึงจะสามารถตรวจสอบบิลและบันทึกได้');
+                return;
+            }
             const bill = generateBillData();
-            preparePDFContent(bill);
+            buildReceiptHTML(bill, 'receipt-preview-container');
+            document.getElementById('receipt-modal-preview').classList.remove('hidden');
+        }
+        function closeReceiptModalPreview() { document.getElementById('receipt-modal-preview').classList.add('hidden'); }
+
+        function buildReceiptHTML(bill, containerId) {
+            let itemsHtml = '';
+            bill.items.forEach((item, idx) => {
+                itemsHtml += `
+                    <tr>
+                        <td class="p-2 border text-center">${idx + 1}</td>
+                        <td class="p-2 border font-semibold">${item.name}</td>
+                        <td class="p-2 border text-center">${item.qty}</td>
+                        <td class="p-2 border text-right">${item.price.toLocaleString()}</td>
+                        <td class="p-2 border text-right font-bold">${(item.price * item.qty).toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById(containerId).innerHTML = `
+                <div class="border-b-2 border-red-700 pb-4 mb-4 flex justify-between items-start">
+                    <div>
+                        <h1 class="text-xl font-black text-red-700">สถานีสัตว์เลี้ยงTH (ค้าส่งออนไลน์)</h1>
+                        <p class="text-xs text-gray-600">คลังสินค้าและศูนย์กระจายสินค้า สุราษฎร์ธานี | โทร: 081-314-3599</p>
+                    </div>
+                    <div class="text-right">
+                        <h2 class="text-sm font-bold text-gray-800">ใบส่งสินค้า / ใบแจ้งหนี้ (B2B)</h2>
+                        <p class="text-xs font-mono font-bold text-red-600 mt-0.5">เลขที่: ${bill.taxId}</p>
+                        <p class="text-xs text-gray-500">วันที่: ${bill.date} ${bill.time}</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-2xl text-xs mb-3 grid grid-cols-2 gap-2">
+                    <div>
+                        <p class="font-bold text-gray-700">🏢 ร้านค้าคู่ค้า:</p>
+                        <p class="font-semibold">${bill.member}</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-700">📍 ข้อมูลการชำระ:</p>
+                        <p>วิธีชำระ: <span class="font-bold text-red-700">${bill.payMethod}</span> ${bill.hasSlip ? '📸(แนบสลิปแล้ว)' : ''}</p>
+                    </div>
+                </div>
+                <table class="w-full text-left border-collapse border border-gray-200 text-xs mb-3">
+                    <thead>
+                        <tr class="bg-red-700 text-white font-bold text-center">
+                            <th class="p-2 border">ลำดับ</th>
+                            <th class="p-2 border">รายการสินค้า</th>
+                            <th class="p-2 border">จำนวน</th>
+                            <th class="p-2 border text-right">ราคา/หน่วย</th>
+                            <th class="p-2 border text-right">รวม (บาท)</th>
+                        </tr>
+                    </thead>
+                    <tbody>${itemsHtml}</tbody>
+                </table>
+                <div class="flex justify-between items-start text-xs bg-red-50/50 p-3 rounded-2xl border border-red-100">
+                    <div>
+                        <p class="font-bold text-gray-800">หมายเหตุ:</p>
+                        <p class="italic text-gray-500">- จัดส่งด่วน สุราษฎร์ธานี -</p>
+                    </div>
+                    <div class="w-1/2 space-y-1">
+                        <div class="flex justify-between"><span>มูลค่าสินค้า:</span> <span>${bill.subtotal.toLocaleString()} ฿</span></div>
+                        <div class="flex justify-between text-red-600"><span>ส่วนลด (2%):</span> <span>-${bill.discount.toLocaleString()} ฿</span></div>
+                        <div class="flex justify-between"><span>VAT 7%:</span> <span>${bill.vat.toLocaleString(undefined, {minimumFractionDigits: 2})} ฿</span></div>
+                        <div class="flex justify-between font-black text-red-700 text-sm border-t pt-1">
+                            <span>ยอดสุทธิ:</span> <span>${bill.net.toLocaleString(undefined, {minimumFractionDigits: 2})} ฿</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ยืนยันการชำระเงิน & แจ้งเตือนเงื่อนไขร้านค้าก่อนบันทึก PDF
+        function confirmAndDownloadPDF() {
+            const method = document.querySelector('input[name="payMethod"]:checked').value;
+            if(method === 'mixed' && !isMixedPaymentValid) {
+                alert('⚠️ ยอดชำระแบบผสมไม่ถูกต้อง (เกินหรือขาด) ไม่สามารถบันทึกได้');
+                return;
+            }
+
+            // Pop-up แจ้งเตือนเงื่อนไขร้านค้าภาษาละมุนแต่เด็ดขาด
+            const confirmed = confirm("⚠️ คำเตือนสำคัญจากทางร้าน\n\nคุณได้ตรวจสอบรายการสั่งซื้อเรียบร้อยแล้ว ทางร้านจะไม่รับผิดชอบใดๆ ทั้งสิ้นหากท่านสั่งสินค้าผิดรุ่น ผิดขนาด หรือต้องการแก้ไขบิลหลังจากยืนยันรายการนี้ ท่านจะต้องทำรายการสั่งซื้อใหม่ทั้งหมดเท่านั้น\n\nท่านต้องการยืนยันและดาวน์โหลดบิล PDF หรือไม่?");
+            if(!confirmed) return;
+
+            const bill = generateBillData();
+            buildReceiptHTML(bill, 'pdf-printable-area');
 
             const element = document.getElementById('pdf-printable-area');
             element.classList.remove('hidden');
@@ -561,11 +706,18 @@
             });
         }
 
-        // ยืนยันการสั่งซื้อ & แชร์ต่อผ่าน LINE / LINE OA
+        // ยืนยันการชำระเงิน & แชร์ต่อผ่าน LINE OA พร้อมแจ้งเตือนเงื่อนไข
         function confirmAndShareLine() {
+            const method = document.querySelector('input[name="payMethod"]:checked').value;
+            if(method === 'mixed' && !isMixedPaymentValid) {
+                alert('⚠️ ยอดชำระแบบผสมไม่ถูกต้อง (เกินหรือขาด) ไม่สามารถส่งต่อได้');
+                return;
+            }
+
+            const confirmed = confirm("⚠️ คำเตือนสำคัญจากทางร้าน\n\nคุณได้ตรวจสอบรายการสั่งซื้อเรียบร้อยแล้ว ทางร้านจะไม่รับผิดชอบใดๆ ทั้งสิ้นหากท่านสั่งสินค้าผิดรุ่น ผิดขนาด หรือต้องการแก้ไขบิลหลังจากยืนยันรายการนี้ ท่านจะต้องทำรายการสั่งซื้อใหม่ทั้งหมดเท่านั้น\n\nท่านต้องการยืนยันและส่งต่อผ่าน LINE OA หรือไม่?");
+            if(!confirmed) return;
+
             const bill = generateBillData();
-            
-            // สร้างข้อความสรุปสำหรับส่งเข้าแชท LINE OA
             let itemsText = bill.items.map(i => `• ${i.name} x ${i.qty} = ${(i.price * i.qty).toLocaleString()} ฿`).join('\n');
             let lineMessage = `🐾 *คำสั่งซื้อใหม่: ${bill.taxId}* 🐾\n` +
                               `🏢 ร้าน: ${bill.member}\n` +
@@ -573,44 +725,21 @@
                               `📦 *รายการสินค้า:*\n${itemsText}\n\n` +
                               `💰 *ยอดชำระสุทธิ: ${bill.net.toLocaleString()} บาท* (รวม VAT และส่วนลด 2%)\n` +
                               `📱 ชำระเงินผ่าน: ${bill.payMethod}\n\n` +
+                              `_⚠️ หมายเหตุ: ตรวจสอบเรียบร้อยแล้ว ไม่รับแก้ไขหรือเปลี่ยนบิลภายหลัง_\n` +
                               `_ขอบคุณที่ใช้บริการสถานีสัตว์เลี้ยงTH สุราษฎร์ธานี_`;
 
-            // เปิดลิงก์แชร์ไปยัง LINE ทันที
             const lineShareUrl = `https://line.me/R/msg/text/?` + encodeURIComponent(lineMessage);
             window.open(lineShareUrl, '_blank');
 
             finalizeCheckoutSuccess(bill);
         }
 
-        function preparePDFContent(bill) {
-            document.getElementById('pdf-rec-taxid').innerText = `เลขที่: ${bill.taxId}`;
-            document.getElementById('pdf-rec-datetime').innerText = `วันที่: ${bill.date} ${bill.time}`;
-            document.getElementById('pdf-rec-member').innerText = bill.member;
-            document.getElementById('pdf-rec-subtotal').innerText = bill.subtotal.toLocaleString() + ' ฿';
-            document.getElementById('pdf-rec-disc').innerText = '-' + bill.discount.toLocaleString() + ' ฿';
-            document.getElementById('pdf-rec-vat').innerText = bill.vat.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' ฿';
-            document.getElementById('pdf-rec-net').innerText = bill.net.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' ฿';
-
-            const tbody = document.getElementById('pdf-rec-items');
-            tbody.innerHTML = '';
-            bill.items.forEach((item, idx) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="p-2 border text-center">${idx + 1}</td>
-                        <td class="p-2 border font-semibold">${item.name}</td>
-                        <td class="p-2 border text-center">${item.qty}</td>
-                        <td class="p-2 border text-right">${item.price.toLocaleString()}</td>
-                        <td class="p-2 border text-right font-bold">${(item.price * item.qty).toLocaleString()}</td>
-                    </tr>
-                `;
-            });
-        }
-
         function finalizeCheckoutSuccess(bill) {
             completedSalesBills.unshift(bill);
             closeCheckoutModal();
+            closeReceiptModalPreview();
             clearCart();
-            alert(`✅ บันทึกคำสั่งซื้อ ${bill.taxId} สำเร็จเรียบร้อย!`);
+            alert(`🎉 ทำรายการสั่งซื้อ ${bill.taxId} สำเร็จเรียบร้อยค่ะเถ้าแก่!`);
         }
 
         function renderCart() {
