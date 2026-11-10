@@ -189,7 +189,7 @@
         <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-5 relative flex flex-col max-h-[90vh]">
             <button onclick="closeBackorderModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
             <h3 class="text-base font-bold text-amber-600 mb-1">⏳ รายการสินค้าคงค้างส่ง (Backorder)</h3>
-            <p class="text-xs text-gray-500 mb-3">เมื่อสินค้าล็อตใหม่เข้าสต๊อก คุณสามารถกดปุ่ม "เพิ่มลงตะกร้า" เพื่อสั่งซื้อเพิ่มเติมได้ทันที (ราคาตามปกติ แต่ยอดชำระสุทธิเป็น 0 บาท และสถานะจ่ายแล้ว)</p>
+            <p class="text-xs text-gray-500 mb-3">เมื่อสินค้าล็อตใหม่เข้าสต๊อก สามารถกดปุ่ม "เพิ่มลงตะกร้า" เพื่อสั่งซื้อเพิ่มเติมได้ทันที (ราคาปกติ ยอดสุทธิ 0 บาท)</p>
             <div id="backorder-list-container" class="space-y-2.5 overflow-y-auto flex-grow pr-1"></div>
         </div>
     </div>
@@ -198,7 +198,8 @@
     <div id="staff-report-modal" class="hidden fixed inset-0 bg-black/80 z-[150] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-5 relative flex flex-col max-h-[90vh]">
             <button onclick="closeStaffReportModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
-            <h3 class="text-base font-bold text-red-700 mb-3">📦 ประวัติคำสั่งซื้อออนไลน์ (รวมรายการสินค้าคงค้าง)</h3>
+            <h3 class="text-base font-bold text-red-700 mb-1">📦 ประวัติคำสั่งซื้อออนไลน์</h3>
+            <p class="text-xs text-gray-500 mb-3">💡 คลิกที่ **"เลขที่คำสั่งซื้อ"** หรือ **"ชื่อร้านค้า"** ในตารางด้านล่าง เพื่อเปิดดูบิล A4 รายละเอียดของบิลนั้นๆ ได้ทันที</p>
             <div class="overflow-y-auto flex-grow rounded-2xl border border-gray-200">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-red-50 text-red-900 font-bold">
@@ -359,7 +360,7 @@
         let currentSortOrder = 'none';
         let selectedMemberData = null;
         let completedSalesBills = [];
-        let backorderItems = []; // รายการสินค้าคงค้างส่ง
+        let backorderItems = [];
         let isMixedPaymentValid = true;
 
         let membersData = [
@@ -367,7 +368,6 @@
             { petName: "พุนพินเพ็ทมาร์ท", ownerName: "คุณลิลลี่", address: "ตลาดพุนพิน สุราษฎร์ธานี", phone: "0895551234" }
         ];
 
-        // เพิ่มสต๊อกคงเหลือ (stock) และหน่วยหลากหลาย (ลัง, กระสอบ, แพ็ค, ถุง, ซอง, ชิ้น)
         let productsFromSheet = [
             { code: "WH-001", name: "Kaniva หมา รสไก่ 1 กก.", brand: "อาหารสุนัข", unit: "ลัง", price: 1400, stock: 5 },
             { code: "WH-002", name: "Luvcare สุนัขพันธุ์กลาง 500g", brand: "อาหารสุนัข", unit: "ลัง", price: 950, stock: 2 },
@@ -492,7 +492,7 @@
                 
                 let stockBadge = p.stock > 0 
                     ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-lg text-[10px] font-bold">สต๊อกคงเหลือ: ${p.stock} ${p.unit}</span>`
-                    : `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-[10px] font-bold">สินค้าหมดสต๊อก (สั่งได้เป็นคงค้าง)</span>`;
+                    : `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-[10px] font-bold">หมดสต๊อก (สั่งเป็นคงค้าง)</span>`;
 
                 card.innerHTML = `
                     <div class="pr-2 w-full sm:w-auto">
@@ -515,7 +515,6 @@
             });
         }
 
-        // เพิ่มสินค้าลงตะกร้า พร้อมคำนวณการเกิดสินค้าคงค้าง (Backorder) หากสั่งเกินสต๊อกจริง
         function addCatalogProductToCart(code, name, price, stock, unit, isBackorderFlag) {
             const qtyInput = document.getElementById(`catalog-qty-${code}`);
             const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
@@ -523,20 +522,17 @@
             let finalQty = qty;
             let backorderQty = 0;
 
-            // หากไม่ใช่การสั่งจากรายการคงค้างโดยตรง ให้เช็คสต๊อกจริง
             if(isBackorderFlag === 0) {
                 if(qty > stock) {
                     backorderQty = qty - stock;
                     finalQty = stock;
-                    alert(`⚠️ แจ้งเตือนสต๊อก:\nสินค้า "${name}" มีในสต๊อกเพียง ${stock} ${unit} (ท่านสั่ง ${qty} ${unit})\n- ระบบจะบันทึก ${stock} ${unit} เป็นรายการซื้อปกติ\n- และแยกจำนวน ${backorderQty} ${unit} เป็น "สินค้าคงค้างส่ง (Backorder)" ให้โดยอัตโนมัติ`);
+                    alert(`⚠️ แจ้งเตือนสต๊อก:\nสินค้า "${name}" มีในสต๊อกเพียง ${stock} ${unit}\n- ระบบบันทึก ${stock} ${unit} เป็นรายการซื้อปกติ\n- แยกจำนวน ${backorderQty} ${unit} เป็น "สินค้าคงค้างส่ง (Backorder)" อัตโนมัติ`);
                 }
             } else {
-                // กรณีสั่งจากเมนูคงค้าง (ยอดเงิน 0 บาท)
                 finalQty = qty;
                 backorderQty = 0;
             }
 
-            // เพิ่มส่วนปกติเข้าตะกร้า (ถ้ามีจำนวนมากกว่า 0)
             if(finalQty > 0) {
                 const ex = cartItems.find(i => i.code === code && i.isBackorder === 0);
                 if(ex) {
@@ -546,7 +542,6 @@
                 }
             }
 
-            // เพิ่มส่วนที่เกินเป็นรายการคงค้าง (Backorder) เข้าไปในระบบหลังบ้าน
             if(backorderQty > 0) {
                 backorderItems.push({
                     code,
@@ -562,7 +557,6 @@
             renderCart();
         }
 
-        // ฟังก์ชันสำหรับกดเพิ่มรายการคงค้างกลับมาลงตะกร้า (ยอดเงิน 0 บาท สถานะจ่ายแล้ว)
         function addBackorderToCart(index) {
             const item = backorderItems[index];
             const ex = cartItems.find(i => i.code === item.code && i.isBackorder === 1);
@@ -572,17 +566,17 @@
                 cartItems.push({
                     code: item.code,
                     name: item.name,
-                    price: item.price, // แสดงราคาตามปกติในบิล
+                    price: item.price,
                     qty: item.qty,
                     unit: item.unit,
-                    isBackorder: 1 // ทำ2เครื่องหมายว่าเป็นรายการคงค้าง (ยอดสุทธิคิดเป็น 0 บาท)
+                    isBackorder: 1
                 });
             }
-            backorderItems.splice(index, 1); // ลบออกจากรายการรอ
+            backorderItems.splice(index, 1);
             updateBackorderBadge();
             renderCart();
             closeBackorderModal();
-            alert(`✅ ดึงรายการ "${item.name}" ลงตะกร้าสินค้าเรียบร้อยแล้ว (รายการนี้คิดยอดสุทธิเป็น 0 บาท)`);
+            alert(`✅ ดึงรายการ "${item.name}" ลงตะกร้าเรียบร้อย (ยอดสุทธิ 0 บาท)`);
         }
 
         function updateBackorderBadge() {
@@ -594,7 +588,7 @@
             const cont = document.getElementById('backorder-list-container');
             cont.innerHTML = '';
             if(backorderItems.length === 0) {
-                cont.innerHTML = `<p class="text-center py-6 text-gray-400 text-xs">ไม่มีสินค้าคงค้างส่งในขณะนี้</p>`;
+                cont.innerHTML = `<p class="text-center py-6 text-gray-400 text-xs">ไม่มีสินค้าคงค้างส่ง</p>`;
                 return;
             }
             backorderItems.forEach((b, idx) => {
@@ -602,7 +596,7 @@
                     <div class="border border-amber-200 bg-amber-50/50 rounded-2xl p-3.5 flex justify-between items-center text-xs">
                         <div>
                             <div class="font-bold text-gray-900">${b.name}</div>
-                            <div class="text-gray-500 mt-0.5">จำนวน: <span class="font-bold text-amber-700">${b.qty} ${b.unit}</span> | ราคาปกติ: ${b.price.toLocaleString()} ฿/หน่วย | บันทึกเมื่อ: ${b.date}</div>
+                            <div class="text-gray-500 mt-0.5">จำนวน: <span class="font-bold text-amber-700">${b.qty} ${b.unit}</span> | ราคาปกติ: ${b.price.toLocaleString()} ฿</div>
                         </div>
                         <button onclick="addBackorderToCart(${idx})" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl shadow">➕ เพิ่มลงตะกร้า (0 ฿)</button>
                     </div>
@@ -625,10 +619,7 @@
 
         function openCheckoutModal() {
             if (cartItems.length === 0) { alert('กรุณาเลือกสินค้าใส่ตะกร้าก่อน'); return; }
-            
-            // คำนวณยอดรวม: สินค้าที่เป็น Backorder (isBackorder === 1) จะมีราคารวมเป็น 0 บาท
             currentSubtotal = cartItems.reduce((sum, i) => sum + (i.isBackorder === 1 ? 0 : (i.price * i.qty)), 0);
-            
             document.getElementById('pay-modal-total').innerText = currentSubtotal.toLocaleString() + ' ฿';
             
             const discount = (currentSubtotal * 2) / 100;
@@ -735,7 +726,6 @@
             document.getElementById('btn-initial-confirm').classList.add('hidden');
             document.getElementById('post-confirm-actions').classList.remove('hidden');
             
-            // บันทึกลงประวัติการซื้อทันที
             const bill = generateBillData();
             completedSalesBills.unshift(bill);
 
@@ -782,6 +772,15 @@
             buildReceiptHTML(bill, 'receipt-preview-container');
             document.getElementById('receipt-modal-preview').classList.remove('hidden');
         }
+
+        // ฟังก์ชันเปิดดูบิลย้อนหลังตาม Index ในประวัติ
+        function openHistoricalReceipt(index) {
+            const bill = completedSalesBills[index];
+            if(!bill) return;
+            buildReceiptHTML(bill, 'receipt-preview-container');
+            document.getElementById('receipt-modal-preview').classList.remove('hidden');
+        }
+
         function closeReceiptModalPreview() { document.getElementById('receipt-modal-preview').classList.add('hidden'); }
 
         function buildReceiptHTML(bill, containerId) {
@@ -1016,13 +1015,16 @@
             document.getElementById('staff-report-modal').classList.remove('hidden');
             const tbody = document.getElementById('staffReportTableBody');
             tbody.innerHTML = '';
-            if(completedSalesBills.length === 0) { tbody.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-gray-400">ยังไม่มีประวัติคำสั่งซื้อ</td></tr>`; return; }
-            completedSalesBills.forEach(b => {
-                let hasBackorderNote = b.items.some(i => i.isBackorder === 1) ? '<br><span class="text-[10px] text-amber-600 font-bold">⏳ มีรายการสินค้าคงค้างส่ง (Backorder)</span>' : '';
+            if(completedSalesBills.length === 0) { 
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-gray-400">ยังไม่มีประวัติคำสั่งซื้อ</td></tr>`; 
+                return; 
+            }
+            completedSalesBills.forEach((b, idx) => {
+                let hasBackorderNote = b.items.some(i => i.isBackorder === 1) ? '<br><span class="text-[10px] text-amber-600 font-bold">⏳ มีรายการสินค้าคงค้างส่ง</span>' : '';
                 tbody.innerHTML += `
-                    <tr class="border-b">
-                        <td class="p-3 font-mono font-bold">${b.taxId}<br><span class="text-[10px] text-gray-400">${b.date}</span></td>
-                        <td class="p-3 font-medium">${b.member} ${hasBackorderNote}</td>
+                    <tr class="border-b hover:bg-red-50/50 transition cursor-pointer" onclick="openHistoricalReceipt(${idx})">
+                        <td class="p-3 font-mono font-bold text-red-700 underline">${b.taxId}<br><span class="text-[10px] text-gray-400 font-normal">${b.date}</span></td>
+                        <td class="p-3 font-medium text-gray-900 underline hover:text-red-600">${b.member} ${hasBackorderNote}</td>
                         <td class="p-3 text-right font-black text-red-700">${b.net.toLocaleString()} ฿</td>
                     </tr>
                 `;
