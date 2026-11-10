@@ -170,7 +170,7 @@
             <button onclick="openMobileCartModal()" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-3 rounded-2xl text-xs shadow-md flex items-center gap-1">
                 <span>📦 ตะกร้า</span> (<span id="mobile-tabbar-qty">0</span>)
             </button>
-            <button onclick="openCheckoutModal()" class="bg-slate-900 text-white font-black px-4 py-3 rounded-2xl text-xs shadow-md">
+            <button onclick="checkoutDirectly()" class="bg-slate-900 text-white font-black px-4 py-3 rounded-2xl text-xs shadow-md">
                 ชำระเงิน
             </button>
         </div>
@@ -235,98 +235,6 @@
         </div>
     </div>
 
-    <!-- Checkout Modal -->
-    <div id="checkout-modal" class="hidden fixed inset-0 bg-black/80 z-[150] flex items-center justify-center p-4 backdrop-blur-md">
-        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 relative max-h-[95vh] overflow-y-auto space-y-4 text-sm">
-            <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
-            <h3 class="text-xl font-black text-gray-900 flex items-center gap-2"><span>💳</span> ชำระเงินค่าสินค้า</h3>
-
-            <div class="flex justify-between items-center text-sm font-bold">
-                <span class="text-gray-600">ยอดรวมสินค้า:</span>
-                <span id="pay-modal-total" class="text-gray-900 text-lg">0.00 ฿</span>
-            </div>
-            
-            <div class="bg-red-50 p-3.5 rounded-2xl border border-red-200 flex justify-between items-center text-xs font-bold">
-                <span class="text-red-900">ส่วนลดท้ายบิล (ล็อก 2%):</span>
-                <input type="number" id="pay-modal-extra-discount" readonly class="w-28 border rounded-xl p-2 text-right font-black text-red-600 bg-gray-100 text-sm">
-            </div>
-
-            <div class="bg-gray-50 p-3.5 rounded-2xl border border-red-200 flex justify-between items-center text-xs font-bold">
-                <span>VAT 7%:</span>
-                <span id="pay-modal-vat-amount" class="text-gray-700 text-sm">0.00 ฿</span>
-            </div>
-
-            <div class="bg-red-100 p-4 rounded-2xl border border-red-200 flex justify-between items-center font-black">
-                <span class="text-red-900 text-base">ยอดชำระสุทธิทั้งสิ้น:</span>
-                <span id="pay-modal-net" class="text-red-700 text-2xl">0.00 ฿</span>
-            </div>
-
-            <div class="grid grid-cols-5 gap-1 text-[11px] font-bold text-center">
-                <label class="border rounded-xl p-2 bg-red-50 border-red-200 text-red-800 cursor-pointer">
-                    <input type="radio" name="payMethod" value="transfer" checked onchange="handlePaymentMethodChange()"> 📱 โอน
-                </label>
-                <label class="border rounded-xl p-2 bg-gray-50 cursor-pointer">
-                    <input type="radio" name="payMethod" value="cash" onchange="handlePaymentMethodChange()"> 💵 สด
-                </label>
-                <label class="border rounded-xl p-2 bg-gray-50 cursor-pointer">
-                    <input type="radio" name="payMethod" value="debt" onchange="handlePaymentMethodChange()"> เครดิต
-                </label>
-                <label class="border rounded-xl p-2 bg-gray-50 cursor-pointer">
-                    <input type="radio" name="payMethod" value="qr" onchange="handlePaymentMethodChange()"> 🔲 QR
-                </label>
-                <label class="border rounded-xl p-2 bg-gray-50 cursor-pointer">
-                    <input type="radio" name="payMethod" value="mixed" onchange="handlePaymentMethodChange()"> 🔀 ผสม
-                </label>
-            </div>
-
-            <div id="mixed-payment-box" class="hidden bg-slate-50 border p-3.5 rounded-2xl space-y-3">
-                <p class="font-bold text-xs text-red-700">🔀 ระบุยอดชำระแบบผสม (เงินสด + เงินโอน)</p>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[11px] font-bold text-gray-700 mb-1">💵 เงินสด</label>
-                        <input type="number" id="mixed-cash-input" oninput="calculateMixedPayment()" step="0.01" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white" placeholder="0.00">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-gray-700 mb-1">📱 เงินโอน</label>
-                        <input type="number" id="mixed-transfer-input" oninput="calculateMixedPayment()" step="0.01" class="w-full border rounded-xl p-2.5 text-xs font-bold bg-white" placeholder="0.00">
-                    </div>
-                </div>
-                <div id="mixed-status-alert" class="text-xs font-bold p-2.5 rounded-xl text-center hidden"></div>
-            </div>
-
-            <div id="payment-qr-box" class="bg-gray-50 border p-4 rounded-2xl text-center space-y-2 text-xs">
-                <p class="font-bold">🏦 กสิกรไทย: <span class="text-red-700">123-4-56789-0</span></p>
-                <div class="bg-white p-2 rounded-xl inline-block border font-mono font-bold text-red-600">[ QR CODE READY ]</div>
-            </div>
-
-            <div id="payment-slip-box" class="bg-red-50 border border-red-200 p-3 rounded-2xl text-xs space-y-1.5">
-                <label class="block font-bold text-red-800">📸 แนบหลักฐานการชำระเงิน (สลิปโอนเงิน) <span class="text-red-600">*จำเป็นต้องแนบ</span></label>
-                <input type="file" id="payment-slip-file" accept="image/*" onchange="checkSlipUploaded()" class="w-full text-xs text-gray-500 file:py-1.5 file:px-2.5 file:rounded-xl file:bg-red-600 file:text-white file:font-bold file:border-0 cursor-pointer">
-                <p id="slip-warning-text" class="text-[11px] text-red-600 font-bold">⚠️ กรุณาแนบสลิปหลักฐานการชำระเงิน</p>
-            </div>
-
-            <div class="pt-2">
-                <button onclick="handleConfirmPaymentClick()" id="btn-initial-confirm" disabled class="w-full bg-slate-800 text-white font-black py-4 rounded-2xl text-sm shadow flex items-center justify-center gap-2 opacity-50 cursor-not-allowed">
-                    <span>✅</span> ยืนยันการจ่ายเงิน
-                </button>
-            </div>
-
-            <div id="post-confirm-actions" class="hidden flex flex-col gap-2 pt-2 border-t">
-                <button onclick="openReceiptModalPreview()" class="w-full bg-slate-700 hover:bg-black text-white font-bold py-3 rounded-2xl text-xs shadow transition flex items-center justify-center gap-1.5">
-                    <span>📄</span> ตรวจสอบรายละเอียดบิล (A4 Preview)
-                </button>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="confirmAndDownloadPDF()" class="bg-red-600 hover:bg-red-700 text-white font-black py-3.5 rounded-2xl text-xs shadow flex items-center justify-center gap-1.5">
-                        <span>📥</span> บันทึก PDF
-                    </button>
-                    <button onclick="confirmAndShareLine()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs shadow flex items-center justify-center gap-1.5">
-                        <span>💬</span> แชร์ต่อผ่าน Line
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Receipt Preview Modal -->
     <div id="receipt-modal-preview" class="hidden fixed inset-0 bg-black/80 z-[170] flex items-center justify-center p-3 backdrop-blur-md">
         <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl p-6 relative max-h-[92vh] flex flex-col">
@@ -361,7 +269,6 @@
         let selectedMemberData = null;
         let completedSalesBills = [];
         let backorderItems = [];
-        let isMixedPaymentValid = true;
 
         let membersData = [
             { petName: "เพ็ทช็อปสุราษฎร์", ownerName: "คุณธัญวลัย", address: "ตลาดศาลเจ้า อ.เมือง สุราษฎร์ธานี", phone: "0813143599" },
@@ -515,13 +422,12 @@
             });
         }
 
-        // ระบบเพิ่มลงตะกร้า: ถ้าสั่งเกินสต๊อก คิดเงินเต็มจำนวน และสะสมส่วนเกินไปเข้าเมนูคงค้างหลังชำระเงินเสร็จ
         function addCatalogProductToCart(code, name, price, stock, unit, isBackorderFlag) {
             const qtyInput = document.getElementById(`catalog-qty-${code}`);
             const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
 
             if(isBackorderFlag === 0 && qty > stock) {
-                alert(`⚠️ แจ้งเตือนสต๊อก:\nสินค้า "${name}" มีในสต๊อก ${stock} ${unit} (ท่านสั่ง ${qty} ${unit})\n- ระบบจะคิดเงินตามจำนวนที่ท่านสั่งซื้อเต็มจำนวนปกติ\n- และจำนวนที่เกินสต๊อก (${qty - stock} ${unit}) จะถูกบันทึกเป็น "สินค้าคงค้างส่ง" เพื่อมารับฟรีในครั้งถัดไปหลังชำระเงินเสร็จสิ้นครับ`);
+                alert(`⚠️ แจ้งเตือนสต๊อก:\nสินค้า "${name}" มีในสต๊อก ${stock} ${unit} (ท่านสั่ง ${qty} ${unit})\n- ระบบจะคิดเงินตามจำนวนที่ท่านสั่งซื้อเต็มจำนวนปกติ\n- และจำนวนที่เกินสต๊อก (${qty - stock} ${unit}) จะถูกบันทึกไปที่เมนู "สินค้าคงค้าง" หลังกดชำระเงินเสร็จครับ`);
             }
 
             const ex = cartItems.find(i => i.code === code && i.isBackorder === isBackorderFlag);
@@ -592,119 +498,14 @@
         function removeCartItem(i) { cartItems.splice(i, 1); renderCart(); filterProducts(); }
         function clearCart() { cartItems = []; renderCart(); filterProducts(); }
 
+        // เมื่อกดชำระเงินจากตะกร้า: ทำธุรกรรมจบในทันที บันทึกลงประวัติ แยกสินค้าคงค้าง และแสดงตัวอย่างบิล A4 ทันที
         let currentSubtotal = 0;
-
-        function openCheckoutModal() {
+        function checkoutDirectly() {
             if (cartItems.length === 0) { alert('กรุณาเลือกสินค้าใส่ตะกร้าก่อน'); return; }
+            
             currentSubtotal = cartItems.reduce((sum, i) => sum + (i.isBackorder === 1 ? 0 : (i.price * i.qty)), 0);
-            document.getElementById('pay-modal-total').innerText = currentSubtotal.toLocaleString() + ' ฿';
-            
-            const discount = (currentSubtotal * 2) / 100;
-            document.getElementById('pay-modal-extra-discount').value = discount.toFixed(2);
-            
-            const vat = (currentSubtotal - discount) * 0.07;
-            const net = (currentSubtotal - discount) + vat;
 
-            document.getElementById('pay-modal-vat-amount').innerText = vat.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' ฿';
-            document.getElementById('pay-modal-net').innerText = net.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' ฿';
-            
-            document.getElementById('mixed-cash-input').value = '';
-            document.getElementById('mixed-transfer-input').value = '';
-            document.getElementById('mixed-status-alert').classList.add('hidden');
-            document.getElementById('payment-slip-file').value = '';
-            isMixedPaymentValid = true;
-
-            document.getElementById('btn-initial-confirm').classList.remove('hidden');
-            document.getElementById('post-confirm-actions').classList.add('hidden');
-            checkSlipUploaded();
-            handlePaymentMethodChange();
-            closeMobileCartModal();
-            document.getElementById('checkout-modal').classList.remove('hidden');
-        }
-
-        function closeCheckoutModal() { document.getElementById('checkout-modal').classList.add('hidden'); }
-
-        function handlePaymentMethodChange() {
-            const method = document.querySelector('input[name="payMethod"]:checked').value;
-            document.getElementById('payment-qr-box').classList.toggle('hidden', method !== 'transfer' && method !== 'qr');
-            document.getElementById('mixed-payment-box').classList.toggle('hidden', method !== 'mixed');
-            
-            const slipBox = document.getElementById('payment-slip-box');
-            if (method === 'cash') slipBox.classList.add('hidden');
-            else slipBox.classList.remove('hidden');
-
-            if(method === 'mixed') calculateMixedPayment();
-            else checkSlipUploaded();
-        }
-
-        function calculateMixedPayment() {
-            const netStr = document.getElementById('pay-modal-net').innerText.replace(/,/g, '').replace(' ฿', '');
-            const net = parseFloat(netStr) || 0;
-            const cash = parseFloat(document.getElementById('mixed-cash-input').value) || 0;
-            const transfer = parseFloat(document.getElementById('mixed-transfer-input').value) || 0;
-            const totalPaid = cash + transfer;
-            const diff = totalPaid - net;
-
-            const alertBox = document.getElementById('mixed-status-alert');
-            alertBox.classList.remove('hidden');
-
-            if (Math.abs(diff) < 0.01) {
-                alertBox.innerText = `✅ ยอดชำระถูกต้องพอดีเป๊ะ (${totalPaid.toLocaleString()} บาท)`;
-                alertBox.className = "text-xs font-bold p-2.5 rounded-xl text-center bg-emerald-100 text-emerald-800 border border-emerald-300";
-                isMixedPaymentValid = true;
-            } else if (diff < 0) {
-                alertBox.innerText = `❌ เงินยังไม่ครบ ขาดอีก ${Math.abs(diff).toLocaleString()} บาท`;
-                alertBox.className = "text-xs font-bold p-2.5 rounded-xl text-center bg-red-100 text-red-800 border border-red-300";
-                isMixedPaymentValid = false;
-            } else {
-                alertBox.innerText = `❌ เงินเกินมา ${diff.toLocaleString()} บาท`;
-                alertBox.className = "text-xs font-bold p-2.5 rounded-xl text-center bg-amber-100 text-amber-900 border border-amber-300";
-                isMixedPaymentValid = false;
-            }
-            checkSlipUploaded();
-        }
-
-        function checkSlipUploaded() {
-            const method = document.querySelector('input[name="payMethod"]:checked').value;
-            const btnInitial = document.getElementById('btn-initial-confirm');
-
-            if (method === 'cash') {
-                document.getElementById('slip-warning-text').innerText = "✅ ชำระด้วยเงินสด (ไม่ต้องแนบสลิป)";
-                document.getElementById('slip-warning-text').className = "text-[11px] text-emerald-700 font-bold";
-                btnInitial.disabled = false;
-                btnInitial.classList.remove('opacity-50', 'cursor-not-allowed');
-                return;
-            }
-
-            const slipInput = document.getElementById('payment-slip-file');
-            const hasSlip = slipInput.files.length > 0;
-            const warningText = document.getElementById('slip-warning-text');
-            const mixedValid = (method !== 'mixed' || isMixedPaymentValid);
-
-            if (hasSlip && mixedValid) {
-                warningText.innerText = "✅ แนบหลักฐานการชำระเงินเรียบร้อยแล้ว";
-                warningText.className = "text-[11px] text-emerald-700 font-bold";
-                btnInitial.disabled = false;
-                btnInitial.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else {
-                if (!hasSlip) {
-                    warningText.innerText = "⚠️ กรุณาแนบสลิปหลักฐานการชำระเงิน";
-                    warningText.className = "text-[11px] text-red-600 font-bold";
-                }
-                btnInitial.disabled = true;
-                btnInitial.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-        }
-
-        // เมื่อกดชำระเงินสำเร็จครบถ้วน: ย้ายส่วนที่เกินสต๊อกไปเข้าเมนูสินค้าคงค้างโดยอัตโนมัติ
-        function handleConfirmPaymentClick() {
-            const confirmed = confirm("⚠️ ยืนยันการชำระเงิน?\n\nกด 'OK' เพื่อบันทึกคำสั่งซื้อลงในประวัติ และบันทึกสินค้าคงค้างส่ง (ถ้ามี) ไปยังเมนูคงค้าง");
-            if (!confirmed) return;
-
-            document.getElementById('btn-initial-confirm').classList.add('hidden');
-            document.getElementById('post-confirm-actions').classList.remove('hidden');
-            
-            // ตรวจสอบสินค้าในตะกร้าตัวไหนที่สั่งเกินสต๊อกจริง ให้เด้งไปเข้า Backorder รอรับรอบถัดไป
+            // ตรวจสอบสินค้าที่สั่งเกินสต๊อก แล้วส่งไปเก็บไว้ที่เมนูคงค้าง
             cartItems.forEach(item => {
                 if(item.isBackorder === 0 && item.stock !== undefined && item.qty > item.stock) {
                     let excessQty = item.qty - item.stock;
@@ -720,51 +521,40 @@
             });
             updateBackorderBadge();
 
-            const bill = generateBillData();
+            // สร้างบิลและบันทึกลงประวัติทันที
+            const bill = generateBillData(currentSubtotal);
             completedSalesBills.unshift(bill);
 
-            alert("✅ ยืนยันการจ่ายเงินสำเร็จ! บันทึกลงประวัติและแยกสินค้าคงค้างส่งเรียบร้อยแล้วค่ะ");
+            // เคลียร์ตะกร้า
+            cartItems = [];
+            renderCart();
+            closeMobileCartModal();
+
+            // แสดงบิล A4 ให้ตรวจสอบทันที
+            buildReceiptHTML(bill, 'receipt-preview-container');
+            document.getElementById('receipt-modal-preview').classList.remove('hidden');
+            alert("✅ ทำรายการชำระเงินสำเร็จ! บันทึกประวัติและแยกสินค้าคงค้างเรียบร้อยแล้วค่ะ");
         }
 
-        function generateBillData() {
-            const netStr = document.getElementById('cartTotalPrice').innerText.replace(/,/g, '').replace(' ฿', '');
-            const net = parseFloat(netStr) || 0;
-            const discount = (currentSubtotal * 2) / 100;
-            const vat = (currentSubtotal - discount) * 0.07;
+        function generateBillData(subtotalVal) {
+            const discount = (subtotalVal * 2) / 100;
+            const vat = (subtotalVal - discount) * 0.07;
+            const net = (subtotalVal - discount) + vat;
             const now = new Date();
             const orderId = "WH-" + now.getFullYear().toString() + String(now.getMonth() + 1).padStart(2, '0') + "001";
-            const method = document.querySelector('input[name="payMethod"]:checked').value;
-
-            let payDetail = method;
-            if (method === 'cash') payDetail = 'เงินสด';
-            else if (method === 'transfer') payDetail = 'เงินโอน';
-            else if (method === 'debt') payDetail = 'เครดิต';
-            else if (method === 'qr') payDetail = 'QR Code';
-            else if (method === 'mixed') {
-                const cash = document.getElementById('mixed-cash-input').value;
-                const transfer = document.getElementById('mixed-transfer-input').value;
-                payDetail = `ผสม (สด: ${cash} ฿, โอน: ${transfer} ฿)`;
-            }
 
             return {
                 taxId: orderId,
                 date: now.toLocaleDateString('th-TH'),
                 time: now.toLocaleTimeString('th-TH'),
                 member: selectedMemberData ? `${selectedMemberData.petName} (${selectedMemberData.ownerName})` : 'ทั่วไป',
-                subtotal: currentSubtotal,
+                subtotal: subtotalVal,
                 discount: discount,
                 vat: vat,
                 net: net,
                 items: JSON.parse(JSON.stringify(cartItems)),
-                payMethod: payDetail,
-                hasSlip: method !== 'cash'
+                payMethod: 'ชำระเงินสำเร็จ (B2B Portal)'
             };
-        }
-
-        function openReceiptModalPreview() {
-            const bill = generateBillData();
-            buildReceiptHTML(bill, 'receipt-preview-container');
-            document.getElementById('receipt-modal-preview').classList.remove('hidden');
         }
 
         function openHistoricalReceipt(index) {
@@ -810,8 +600,8 @@
                         <p class="font-semibold">${bill.member}</p>
                     </div>
                     <div>
-                        <p class="font-bold text-gray-700">📍 ข้อมูลการชำระ:</p>
-                        <p>วิธีชำระ: <span class="font-bold text-red-700">${bill.payMethod}</span></p>
+                        <p class="font-bold text-gray-700">📍 สถานะ:</p>
+                        <p><span class="font-bold text-emerald-700">${bill.payMethod}</span></p>
                     </div>
                 </div>
                 <table class="w-full text-left border-collapse border border-gray-200 text-xs mb-3">
@@ -843,40 +633,6 @@
             `;
         }
 
-        function confirmAndDownloadPDF() {
-            const bill = generateBillData();
-            buildReceiptHTML(bill, 'pdf-printable-area');
-            const element = document.getElementById('pdf-printable-area');
-            element.classList.remove('hidden');
-
-            const opt = {
-                margin: 5,
-                filename: `Invoice_${bill.taxId}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().from(element).set(opt).save().then(() => {
-                element.classList.add('hidden');
-            });
-        }
-
-        function confirmAndShareLine() {
-            const bill = generateBillData();
-            let itemsText = bill.items.map(i => `• ${i.name} x ${i.qty} ${i.unit} = ${i.isBackorder === 1 ? '0 (คงค้าง)' : (i.price * i.qty).toLocaleString()} ฿`).join('\n');
-            let lineMessage = `🐾 *คำสั่งซื้อใหม่: ${bill.taxId}* 🐾\n` +
-                            `🏢 ร้าน: ${bill.member}\n` +
-                            `📅 วันที่: ${bill.date} ${bill.time}\n\n` +
-                            `📦 *รายการสินค้า:*\n${itemsText}\n\n` +
-                            `💰 *ยอดชำระสุทธิ: ${bill.net.toLocaleString()} บาท*\n` +
-                            `📱 ชำระเงินผ่าน: ${bill.payMethod}\n\n` +
-                            `_ขอบคุณที่ใช้บริการสถานีสัตว์เลี้ยงTH สุราษฎร์ธานี_`;
-
-            const lineShareUrl = `https://line.me/R/msg/text/?` + encodeURIComponent(lineMessage);
-            window.open(lineShareUrl, '_blank');
-        }
-
         function renderCart() {
             let total = 0, totalQty = 0;
             let itemsHtml = '';
@@ -891,7 +647,7 @@
 
                     let stockWarningBadge = '';
                     if(item.isBackorder === 0 && item.stock !== undefined && item.qty > item.stock) {
-                        stockWarningBadge = `<br><span class="text-amber-600 font-bold text-[10px]">⚠️ สั่งเกินสต๊อก (${item.qty - item.stock} ${item.unit}) จะถูกแยกไปเข้าเมนูคงค้างหลังชำระเงิน</span>`;
+                        stockWarningBadge = `<br><span class="text-amber-600 font-bold text-[10px]">⚠️ เกินสต๊อก (${item.qty - item.stock} ${item.unit}) จะถูกแยกไปเข้าเมนูคงค้างหลังชำระเงิน</span>`;
                     }
 
                     let badgeType = item.isBackorder === 1 
@@ -955,8 +711,8 @@
                     </div>
                 </div>
 
-                <button onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 text-white font-black py-4 rounded-2xl text-base shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
-                    <span>💳</span> ดำเนินการชำระเงิน
+                <button onclick="checkoutDirectly()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 text-white font-black py-4 rounded-2xl text-base shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
+                    <span>💳</span> ชำระเงิน / ยืนยันการสั่งซื้อทันที
                 </button>
             `;
 
