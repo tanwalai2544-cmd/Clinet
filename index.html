@@ -290,8 +290,8 @@
                 <div class="bg-white p-2 rounded-xl inline-block border font-mono font-bold text-red-600">[ QR CODE READY ]</div>
             </div>
 
-            <!-- ช่องเพิ่มไฟล์หลักฐานการชำระเงิน -->
-            <div class="bg-red-50 border border-red-200 p-3 rounded-2xl text-xs space-y-1.5">
+            <!-- ช่องเพิ่มไฟล์หลักฐานการชำระเงิน (ซ่อนอัตโนมัติเมื่อเลือกเงินสด) -->
+            <div id="payment-slip-box" class="bg-red-50 border border-red-200 p-3 rounded-2xl text-xs space-y-1.5">
                 <label class="block font-bold text-red-800">📸 แนบหลักฐานการชำระเงิน (สลิปโอนเงิน) <span class="text-red-600">*จำเป็นต้องแนบ</span></label>
                 <input type="file" id="payment-slip-file" accept="image/*" onchange="checkSlipUploaded()" class="w-full text-xs text-gray-500 file:py-1.5 file:px-2.5 file:rounded-xl file:bg-red-600 file:text-white file:font-bold file:border-0 cursor-pointer">
                 <p id="slip-warning-text" class="text-[11px] text-red-600 font-bold">⚠️ กรุณาแนบสลิปหลักฐานการชำระเงิน มิฉะนั้นจะไม่สามารถยืนยันการจ่ายเงินได้</p>
@@ -560,10 +560,24 @@
 
         function handlePaymentMethodChange() {
             const method = document.querySelector('input[name="payMethod"]:checked').value;
+            
+            // แสดง/ซ่อน QR Code
             document.getElementById('payment-qr-box').classList.toggle('hidden', method !== 'transfer' && method !== 'qr');
+            // แสดง/ซ่อนช่องชำระแบบผสม
             document.getElementById('mixed-payment-box').classList.toggle('hidden', method !== 'mixed');
+            
+            // ซ่อนช่องแนบสลิปทันทีถ้าเลือก "เงินสด" (cash)
+            const slipBox = document.getElementById('payment-slip-box');
+            if (method === 'cash') {
+                slipBox.classList.add('hidden');
+            } else {
+                slipBox.classList.remove('hidden');
+            }
+
             if(method === 'mixed') {
                 calculateMixedPayment();
+            } else {
+                checkSlipUploaded();
             }
         }
 
@@ -595,12 +609,21 @@
         }
 
         function checkSlipUploaded() {
+            const method = document.querySelector('input[name="payMethod"]:checked').value;
+            const btnInitial = document.getElementById('btn-initial-confirm');
+
+            // ถ้าเป็นเงินสด ไม่ต้องเช็คสลิป ปลดล็อกปุ่มยืนยันได้ทันที
+            if (method === 'cash') {
+                document.getElementById('slip-warning-text').innerText = "✅ ชำระด้วยเงินสด (ไม่ต้องแนบสลิป)";
+                document.getElementById('slip-warning-text').className = "text-[11px] text-emerald-700 font-bold";
+                btnInitial.disabled = false;
+                btnInitial.classList.remove('opacity-50', 'cursor-not-allowed');
+                return;
+            }
+
             const slipInput = document.getElementById('payment-slip-file');
             const hasSlip = slipInput.files.length > 0;
             const warningText = document.getElementById('slip-warning-text');
-            const btnInitial = document.getElementById('btn-initial-confirm');
-
-            const method = document.querySelector('input[name="payMethod"]:checked').value;
             const mixedValid = (method !== 'mixed' || isMixedPaymentValid);
 
             if (hasSlip && mixedValid) {
@@ -640,7 +663,11 @@
             const method = document.querySelector('input[name="payMethod"]:checked').value;
 
             let payDetail = method;
-            if (method === 'mixed') {
+            if (method === 'cash') payDetail = 'เงินสด';
+            else if (method === 'transfer') payDetail = 'เงินโอน';
+            else if (method === 'debt') payDetail = 'เครดิต';
+            else if (method === 'qr') payDetail = 'QR Code';
+            else if (method === 'mixed') {
                 const cash = document.getElementById('mixed-cash-input').value;
                 const transfer = document.getElementById('mixed-transfer-input').value;
                 payDetail = `ผสม (สด: ${cash} ฿, โอน: ${transfer} ฿)`;
@@ -657,7 +684,7 @@
                 net: net,
                 items: JSON.parse(JSON.stringify(cartItems)),
                 payMethod: payDetail,
-                hasSlip: true
+                hasSlip: method !== 'cash'
             };
         }
 
@@ -682,6 +709,8 @@
                 `;
             });
 
+            let slipStatusText = bill.hasSlip ? '📸(แนบสลิปแล้ว)' : '💵(ชำระด้วยเงินสด - ไม่ต้องแนบสลิป)';
+
             document.getElementById(containerId).innerHTML = `
                 <div class="border-b-2 border-red-700 pb-4 mb-4 flex justify-between items-start">
                     <div>
@@ -701,7 +730,7 @@
                     </div>
                     <div>
                         <p class="font-bold text-gray-700">📍 ข้อมูลการชำระ:</p>
-                        <p>วิธีชำระ: <span class="font-bold text-red-700">${bill.payMethod}</span> 📸(แนบสลิปแล้ว)</p>
+                        <p>วิธีชำระ: <span class="font-bold text-red-700">${bill.payMethod}</span> ${slipStatusText}</p>
                     </div>
                 </div>
                 <table class="w-full text-left border-collapse border border-gray-200 text-xs mb-3">
@@ -750,7 +779,6 @@
 
             html2pdf().from(element).set(opt).save().then(() => {
                 element.classList.add('hidden');
-                // บันทึกบิลลงประวัติหลังบ้าน แต่ยังคงเปิดหน้าต่าง Checkout ค้างไว้ตามที่ต้องการ
                 completedSalesBills.unshift(bill);
             });
         }
@@ -770,7 +798,6 @@
             const lineShareUrl = `https://line.me/R/msg/text/?` + encodeURIComponent(lineMessage);
             window.open(lineShareUrl, '_blank');
 
-            // บันทึกบิลลงประวัติหลังบ้าน แต่ยังคงเปิดหน้าต่าง Checkout ค้างไว้ตามที่ต้องการ
             completedSalesBills.unshift(bill);
         }
 
@@ -860,7 +887,6 @@
             membersData.push({ petName, ownerName, address: address || 'สุราษฎร์ธานี', phone: phone || '-' });
             toggleAddMemberForm();
             renderMemberList();
-            // เลือกใช้อัตโนมัติทันทีที่เพิ่มเสร็จ
             selectMember(membersData.length - 1);
             alert(`✅ เพิ่มร้านค้า "${petName}" เรียบร้อยแล้วค่ะ!`);
         }
