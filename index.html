@@ -102,85 +102,94 @@
             </div>
         </header>
 
-        <main class="w-full p-3 sm:p-5 flex-grow space-y-4 max-w-4xl mx-auto">
+        <!-- ปรับโครงสร้างหลักให้แบ่งเป็น 2 คอลัมน์ (ซ้าย: แคตตาล็อก, ขวา: ตะกร้าสินค้าออนไลน์) บนหน้าจอขนาดกลางขึ้นไป -->
+        <main class="w-full p-3 sm:p-5 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-5 max-w-7xl mx-auto">
             
-            <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-base font-black text-red-700">🛒 แคตตาล็อกสินค้าค้าส่ง</h2>
-                    <button onclick="togglePriceSort()" id="sortPriceBtn" class="bg-red-50 hover:bg-red-100 text-red-700 font-bold px-3.5 py-2 rounded-2xl text-xs border border-red-200 transition flex items-center gap-1 shadow-sm">
-                        <span>📊 เรียงราคา: ปกติ</span>
+            <!-- ฝั่งซ้าย: แคตตาล็อกสินค้า (กินพื้นที่ 7 ส่วน) -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-base font-black text-red-700">🛒 แคตตาล็อกสินค้าค้าส่ง</h2>
+                        <button onclick="togglePriceSort()" id="sortPriceBtn" class="bg-red-50 hover:bg-red-100 text-red-700 font-bold px-3.5 py-2 rounded-2xl text-xs border border-red-200 transition flex items-center gap-1 shadow-sm">
+                            <span>📊 เรียงราคา: ปกติ</span>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="brandFilterSelect" onchange="filterProducts()" class="border-2 border-gray-200 rounded-2xl px-3.5 py-3 text-xs font-bold bg-gray-50 text-gray-800 focus:border-red-600 focus:outline-none">
+                            <option value="">🏢 ทุกหมวดหมู่</option>
+                            <option value="อาหารสุนัข">อาหารสุนัข (ยกลัง/กระสอบ)</option>
+                            <option value="อาหารแมว">อาหารแมว (ยกลัง/กระสอบ)</option>
+                            <option value="สัตว์ฟันแทะ">สัตว์ฟันแทะ (แพ็คใหญ่)</option>
+                            <option value="เปียก">อาหารเปียก (ยกลัง)</option>
+                            <option value="Topfeed">อาหารสัตว์เศรษฐกิจ Topfeed</option>
+                        </select>
+                        <select id="unitFilterSelect" onchange="filterProducts()" class="border-2 border-gray-200 rounded-2xl px-3.5 py-3 text-xs font-bold bg-gray-50 text-gray-800 focus:border-red-600 focus:outline-none">
+                            <option value="">🏷️ ทุกขนาด</option>
+                            <option value="ลัง">ยกลัง</option>
+                            <option value="กระสอบ">กระสอบ</option>
+                            <option value="แพ็ค">แพ็คใหญ่</option>
+                        </select>
+                    </div>
+
+                    <div class="relative">
+                        <input type="text" id="productSearchInput" onkeyup="handleSearchKeyup(event)" placeholder="พิมพ์ชื่อสินค้า หรือรหัส (กด Enter)..." class="w-full border-2 border-gray-200 rounded-2xl pl-10 pr-4 py-3.5 text-xs font-bold bg-gray-50 focus:border-red-600 focus:outline-none">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 text-sm">🔍</span>
+                    </div>
+                </div>
+
+                <!-- รายการสินค้าพร้อมช่องกรอกจำนวนสะสมเรียลไทม์ -->
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
+                    <h3 class="text-sm font-bold text-gray-700">📦 รายการสินค้า (ระบุจำนวนแล้วกดหยิบใส่ตะกร้า)</h3>
+                    <div id="googleSheetProductList" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1"></div>
+                </div>
+            </div>
+
+            <!-- ฝั่งขวา: ตะกร้าสินค้าออนไลน์ (กินพื้นที่ 5 ส่วน) -->
+            <div class="lg:col-span-5 space-y-4">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3 sticky top-20">
+                    <div class="flex justify-between items-center border-b pb-2.5">
+                        <h2 class="text-base font-black text-red-700">🧾 ตะกร้าสินค้าออนไลน์</h2>
+                        <div class="flex items-center gap-2">
+                            <button onclick="openMemberModal()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-2xl text-xs font-bold shadow-sm">🏢 เลือกร้านค้า</button>
+                            <button onclick="clearCart()" class="text-gray-400 hover:text-red-600 p-2 text-xs font-bold">🗑️ ล้าง</button>
+                        </div>
+                    </div>
+                    
+                    <div id="selected-member-display" class="hidden bg-red-50 border border-red-200 p-3 rounded-2xl text-xs flex justify-between items-center shadow-sm">
+                        <div>
+                            <span class="font-bold text-red-900 block text-sm">🏢 ร้าน: <span id="disp-owner" class="text-gray-900"></span> (<span id="disp-pet" class="text-gray-700"></span>)</span>
+                            <span class="text-xs text-gray-600 mt-0.5 block">📍 <span id="disp-address"></span> | 📞 <span id="disp-phone"></span></span>
+                        </div>
+                        <button onclick="clearSelectedMember()" class="text-red-500 font-bold text-base px-2 bg-white rounded-full shadow-sm">✕</button>
+                    </div>
+
+                    <!-- รายการสินค้าในตะกร้า รองรับการปัดไปทางซ้ายเพื่อแสดงเมนูฟังก์ชัน -->
+                    <div id="cartItemList" class="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+                        <p class="text-center py-6 text-gray-400 text-xs font-medium">ยังไม่มีสินค้าในตะกร้าของคุณ</p>
+                    </div>
+
+                    <div class="border-t pt-3 space-y-1.5 text-xs bg-red-50/60 p-3.5 rounded-2xl border border-red-100">
+                        <div class="flex justify-between text-gray-600 font-bold">
+                            <span>จำนวนสินค้ารวม:</span>
+                            <span id="summary-total-qty" class="text-gray-900 text-sm">0 หน่วย</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600 font-bold">
+                            <span>ส่วนลดโปรโมชั่น (2% ล็อกอัตโนมัติ):</span>
+                            <span id="summary-total-discount" class="text-red-600 text-sm">0.00 ฿</span>
+                        </div>
+                        <div class="flex justify-between items-center text-base font-black border-t pt-2 mt-1">
+                            <span class="text-gray-800">ยอดชำระสุทธิ (รวม VAT 7%):</span> 
+                            <span id="cartTotalPrice" class="text-red-600 text-2xl font-black">0.00 ฿</span>
+                        </div>
+                    </div>
+
+                    <button onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 text-white font-black py-4 rounded-2xl text-base shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
+                        <span>💳</span> ดำเนินการชำระเงิน [F9]
                     </button>
                 </div>
-                
-                <div class="grid grid-cols-2 gap-2">
-                    <select id="brandFilterSelect" onchange="filterProducts()" class="border-2 border-gray-200 rounded-2xl px-3.5 py-3 text-xs font-bold bg-gray-50 text-gray-800 focus:border-red-600 focus:outline-none">
-                        <option value="">🏢 ทุกหมวดหมู่</option>
-                        <option value="อาหารสุนัข">อาหารสุนัข (ยกลัง/กระสอบ)</option>
-                        <option value="อาหารแมว">อาหารแมว (ยกลัง/กระสอบ)</option>
-                        <option value="สัตว์ฟันแทะ">สัตว์ฟันแทะ (แพ็คใหญ่)</option>
-                        <option value="เปียก">อาหารเปียก (ยกลัง)</option>
-                        <option value="Topfeed">อาหารสัตว์เศรษฐกิจ Topfeed</option>
-                    </select>
-                    <select id="unitFilterSelect" onchange="filterProducts()" class="border-2 border-gray-200 rounded-2xl px-3.5 py-3 text-xs font-bold bg-gray-50 text-gray-800 focus:border-red-600 focus:outline-none">
-                        <option value="">🏷️ ทุกขนาด</option>
-                        <option value="ลัง">ยกลัง</option>
-                        <option value="กระสอบ">กระสอบ</option>
-                        <option value="แพ็ค">แพ็คใหญ่</option>
-                    </select>
-                </div>
-
-                <div class="relative">
-                    <input type="text" id="productSearchInput" onkeyup="handleSearchKeyup(event)" placeholder="พิมพ์ชื่อสินค้า หรือรหัส (กด Enter)..." class="w-full border-2 border-gray-200 rounded-2xl pl-10 pr-4 py-3.5 text-xs font-bold bg-gray-50 focus:border-red-600 focus:outline-none">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 text-sm">🔍</span>
-                </div>
             </div>
 
-            <!-- รายการสินค้าพร้อมช่องกรอกจำนวนสะสมเรียลไทม์ -->
-            <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
-                <h3 class="text-sm font-bold text-gray-700">📦 รายการสินค้า (ระบุจำนวนแล้วกดหยิบใส่ตะกร้า)</h3>
-                <div id="googleSheetProductList" class="space-y-2.5 max-h-[420px] overflow-y-auto pr-1"></div>
-            </div>
-
-            <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
-                <div class="flex justify-between items-center border-b pb-2.5">
-                    <h2 class="text-base font-black text-red-700">🧾 ตะกร้าสินค้าออนไลน์</h2>
-                    <div class="flex items-center gap-2">
-                        <button onclick="openMemberModal()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-2xl text-xs font-bold shadow-sm">🏢 เลือกร้านค้า</button>
-                        <button onclick="clearCart()" class="text-gray-400 hover:text-red-600 p-2 text-xs font-bold">🗑️ ล้าง</button>
-                    </div>
-                </div>
-                
-                <div id="selected-member-display" class="hidden bg-red-50 border border-red-200 p-3 rounded-2xl text-xs flex justify-between items-center shadow-sm">
-                    <div>
-                        <span class="font-bold text-red-900 block text-sm">🏢 ร้าน: <span id="disp-owner" class="text-gray-900"></span> (<span id="disp-pet" class="text-gray-700"></span>)</span>
-                        <span class="text-xs text-gray-600 mt-0.5 block">📍 <span id="disp-address"></span> | 📞 <span id="disp-phone"></span></span>
-                    </div>
-                    <button onclick="clearSelectedMember()" class="text-red-500 font-bold text-base px-2 bg-white rounded-full shadow-sm">✕</button>
-                </div>
-
-                <div id="cartItemList" class="space-y-2 max-h-[250px] overflow-y-auto pr-1">
-                    <p class="text-center py-6 text-gray-400 text-xs font-medium">ยังไม่มีสินค้าในตะกร้าของคุณ</p>
-                </div>
-
-                <div class="border-t pt-3 space-y-1.5 text-xs bg-red-50/60 p-3.5 rounded-2xl border border-red-100">
-                    <div class="flex justify-between text-gray-600 font-bold">
-                        <span>จำนวนสินค้ารวม:</span>
-                        <span id="summary-total-qty" class="text-gray-900 text-sm">0 หน่วย</span>
-                    </div>
-                    <div class="flex justify-between text-gray-600 font-bold">
-                        <span>ส่วนลดโปรโมชั่น (2% ล็อกอัตโนมัติ):</span>
-                        <span id="summary-total-discount" class="text-red-600 text-sm">0.00 ฿</span>
-                    </div>
-                    <div class="flex justify-between items-center text-base font-black border-t pt-2 mt-1">
-                        <span class="text-gray-800">ยอดชำระสุทธิ (รวม VAT 7%):</span> 
-                        <span id="cartTotalPrice" class="text-red-600 text-2xl font-black">0.00 ฿</span>
-                    </div>
-                </div>
-
-                <button onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 text-white font-black py-4 rounded-2xl text-base shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
-                    <span>💳</span> ดำเนินการชำระเงิน [F9]
-                </button>
-            </div>
         </main>
     </div>
 
@@ -548,7 +557,6 @@
             document.getElementById('payment-slip-file').value = '';
             isMixedPaymentValid = true;
 
-            // รีเซ็ตปุ่มขั้นตอน
             document.getElementById('btn-initial-confirm').classList.remove('hidden');
             document.getElementById('post-confirm-actions').classList.add('hidden');
             checkSlipUploaded();
@@ -561,12 +569,9 @@
         function handlePaymentMethodChange() {
             const method = document.querySelector('input[name="payMethod"]:checked').value;
             
-            // แสดง/ซ่อน QR Code
             document.getElementById('payment-qr-box').classList.toggle('hidden', method !== 'transfer' && method !== 'qr');
-            // แสดง/ซ่อนช่องชำระแบบผสม
             document.getElementById('mixed-payment-box').classList.toggle('hidden', method !== 'mixed');
             
-            // ซ่อนช่องแนบสลิปทันทีถ้าเลือก "เงินสด" (cash)
             const slipBox = document.getElementById('payment-slip-box');
             if (method === 'cash') {
                 slipBox.classList.add('hidden');
@@ -612,7 +617,6 @@
             const method = document.querySelector('input[name="payMethod"]:checked').value;
             const btnInitial = document.getElementById('btn-initial-confirm');
 
-            // ถ้าเป็นเงินสด ไม่ต้องเช็คสลิป ปลดล็อกปุ่มยืนยันได้ทันที
             if (method === 'cash') {
                 document.getElementById('slip-warning-text').innerText = "✅ ชำระด้วยเงินสด (ไม่ต้องแนบสลิป)";
                 document.getElementById('slip-warning-text').className = "text-[11px] text-emerald-700 font-bold";
@@ -787,13 +791,13 @@
             const bill = generateBillData();
             let itemsText = bill.items.map(i => `• ${i.name} x ${i.qty} = ${(i.price * i.qty).toLocaleString()} ฿`).join('\n');
             let lineMessage = `🐾 *คำสั่งซื้อใหม่: ${bill.taxId}* 🐾\n` +
-                              `🏢 ร้าน: ${bill.member}\n` +
-                              `📅 วันที่: ${bill.date} ${bill.time}\n\n` +
-                              `📦 *รายการสินค้า:*\n${itemsText}\n\n` +
-                              `💰 *ยอดชำระสุทธิ: ${bill.net.toLocaleString()} บาท* (รวม VAT และส่วนลด 2%)\n` +
-                              `📱 ชำระเงินผ่าน: ${bill.payMethod}\n\n` +
-                              `_⚠️ หมายเหตุ: ตรวจสอบเรียบร้อยแล้ว ไม่รับแก้ไขหรือเปลี่ยนบิลภายหลัง_\n` +
-                              `_ขอบคุณที่ใช้บริการสถานีสัตว์เลี้ยงTH สุราษฎร์ธานี_`;
+                            `🏢 ร้าน: ${bill.member}\n` +
+                            `📅 วันที่: ${bill.date} ${bill.time}\n\n` +
+                            `📦 *รายการสินค้า:*\n${itemsText}\n\n` +
+                            `💰 *ยอดชำระสุทธิ: ${bill.net.toLocaleString()} บาท* (รวม VAT และส่วนลด 2%)\n` +
+                            `📱 ชำระเงินผ่าน: ${bill.payMethod}\n\n` +
+                            `_⚠️ หมายเหตุ: ตรวจสอบเรียบร้อยแล้ว ไม่รับแก้ไขหรือเปลี่ยนบิลภายหลัง_\n` +
+                            `_ขอบคุณที่ใช้บริการสถานีสัตว์เลี้ยงTH สุราษฎร์ธานี_`;
 
             const lineShareUrl = `https://line.me/R/msg/text/?` + encodeURIComponent(lineMessage);
             window.open(lineShareUrl, '_blank');
@@ -818,15 +822,25 @@
             cartItems.forEach((item, idx) => {
                 let sum = item.price * item.qty;
                 total += sum; totalQty += item.qty;
+                
+                // ออกแบบโครงสร้างรายการสินค้าในตะกร้าให้ปัดซ้าย (Swipe-to-reveal) หรือซ่อนปุ่มเมนูด้านข้างไว้เลื่อนดู
                 container.innerHTML += `
-                    <div class="border rounded-2xl p-3 flex justify-between items-center bg-gray-50/80 text-xs">
-                        <div class="pr-2">
-                            <div class="font-bold text-gray-900 text-sm">${item.name}</div>
-                            <div class="text-red-600 font-bold mt-0.5">${sum.toLocaleString()} ฿</div>
+                    <div class="relative overflow-hidden border rounded-2xl bg-gray-50/80 text-xs shadow-sm">
+                        <!-- เมนูฟังก์ชันด้านหลัง (ที่จะปรากฏเมื่อปัดหรือแสดงแถบขวา) -->
+                        <div class="absolute inset-y-0 right-0 flex items-center bg-red-600 text-white px-3 gap-2">
+                            <button onclick="removeCartItem(${idx})" class="font-bold p-1 text-sm" title="ลบสินค้า">🗑️</button>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <input type="number" min="1" value="${item.qty}" onchange="updateCartQty(${idx}, this.value)" class="w-16 border-2 rounded-xl text-center py-1.5 font-bold bg-white">
-                            <button onclick="removeCartItem(${idx})" class="text-red-500 font-bold p-1">🗑️</button>
+                        
+                        <!-- ตัวการ์ดสินค้าหลักที่สามารถเลื่อนซ้ายได้ -->
+                        <div class="relative bg-white p-3 flex justify-between items-center transition-transform duration-200" ontouchstart="touchStart(event)" ontouchend="touchEnd(event)" style="transform: translateX(0px);">
+                            <div class="pr-2">
+                                <div class="font-bold text-gray-900 text-sm">${item.name}</div>
+                                <div class="text-red-600 font-bold mt-0.5">${sum.toLocaleString()} ฿</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="1" value="${item.qty}" onchange="updateCartQty(${idx}, this.value)" class="w-16 border-2 rounded-xl text-center py-1.5 font-bold bg-white">
+                                <span class="text-gray-400 text-[10px]">👈 ปัดซ้าย</span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -838,6 +852,23 @@
             document.getElementById('summary-total-qty').innerText = totalQty + " หน่วย";
             document.getElementById('summary-total-discount').innerText = discount.toLocaleString(undefined, {minimumFractionDigits: 2}) + " ฿";
             filterProducts();
+        }
+
+        // ฟังก์ชันรองรับการปัดซ้าย (Swipe Left) บนมือถือ/แท็บเล็ต
+        let touchStartX = 0;
+        function touchStart(e) {
+            touchStartX = e.touches[0].clientX;
+        }
+        function touchEnd(e) {
+            const touchEndX = e.changedTouches[0].clientX;
+            const card = e.currentTarget;
+            if (touchStartX - touchEndX > 50) {
+                // ปัดซ้ายเพื่อเปิดเมนู
+                card.style.transform = 'translateX(-70px)';
+            } else if (touchEndX - touchStartX > 50) {
+                // ปัดขวาเพื่อปิดกลับ
+                card.style.transform = 'translateX(0px)';
+            }
         }
 
         function openMemberModal() {
