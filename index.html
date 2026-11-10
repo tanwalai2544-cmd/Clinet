@@ -13,7 +13,7 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
     </style>
 </head>
-<body class="bg-slate-900 text-gray-900 min-h-screen flex flex-col selection:bg-red-600 selection:text-white text-base">
+<body class="bg-slate-900 text-gray-900 min-h-screen flex flex-col selection:bg-red-600 selection:text-white text-base pb-20 lg:pb-0">
 
     <!-- ================= 1. หน้าล็อกอิน ================= -->
     <div id="auth-wrapper" class="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 backdrop-blur-xl">
@@ -102,10 +102,10 @@
             </div>
         </header>
 
-        <!-- จัดวางโครงสร้างให้ตารางแสดงผลฝั่งขวา (grid-cols-1 lg:grid-cols-12) ทั้งบนมือถือและคอมพิวเตอร์ -->
+        <!-- โครงสร้างหน้าหลัก -->
         <main class="w-full p-3 sm:p-5 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-5 max-w-7xl mx-auto">
             
-            <!-- ฝั่งซ้าย: แคตตาล็อกสินค้า (7 ส่วน) -->
+            <!-- ฝั่งซ้าย: แคตตาล็อกสินค้า (แสดงเต็มความกว้างบนมือถือ และกินพื้นที่ 7 ส่วนบนจอคอม) -->
             <div class="lg:col-span-7 space-y-4">
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
                     <div class="flex justify-between items-center">
@@ -138,62 +138,53 @@
                     </div>
                 </div>
 
-                <!-- รายการสินค้าพร้อมช่องกรอกจำนวนสะสมเรียลไทม์ -->
+                <!-- รายการสินค้า -->
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
                     <h3 class="text-sm font-bold text-gray-700">📦 รายการสินค้า (ระบุจำนวนแล้วกดหยิบใส่ตะกร้า)</h3>
                     <div id="googleSheetProductList" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1"></div>
                 </div>
             </div>
 
-            <!-- ฝั่งขวา: ตะกร้าสินค้าออนไลน์ (5 ส่วน - อยู่ขวาตลอดทั้งบนมือถือและจอคอม) -->
-            <div class="lg:col-span-5 space-y-4">
-                <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3 sticky top-20">
-                    <div class="flex justify-between items-center border-b pb-2.5">
-                        <h2 class="text-base font-black text-red-700">🧾 ตะกร้าสินค้าออนไลน์</h2>
-                        <div class="flex items-center gap-2">
-                            <button onclick="openMemberModal()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-2xl text-xs font-bold shadow-sm">🏢 เลือกร้านค้า</button>
-                            <button onclick="clearCart()" class="text-gray-400 hover:text-red-600 p-2 text-xs font-bold">🗑️ ล้าง</button>
-                        </div>
-                    </div>
-                    
-                    <div id="selected-member-display" class="hidden bg-red-50 border border-red-200 p-3 rounded-2xl text-xs flex justify-between items-center shadow-sm">
-                        <div>
-                            <span class="font-bold text-red-900 block text-sm">🏢 ร้าน: <span id="disp-owner" class="text-gray-900"></span> (<span id="disp-pet" class="text-gray-700"></span>)</span>
-                            <span class="text-xs text-gray-600 mt-0.5 block">📍 <span id="disp-address"></span> | 📞 <span id="disp-phone"></span></span>
-                        </div>
-                        <button onclick="clearSelectedMember()" class="text-red-500 font-bold text-base px-2 bg-white rounded-full shadow-sm">✕</button>
-                    </div>
-
-                    <!-- รายการสินค้าในตะกร้า แสดงไอคอนถังขยะ 🗑️ ปกติ ไม่ต้องปัดซ้าย -->
-                    <div id="cartItemList" class="space-y-2 max-h-[280px] overflow-y-auto pr-1">
-                        <p class="text-center py-6 text-gray-400 text-xs font-medium">ยังไม่มีสินค้าในตะกร้าของคุณ</p>
-                    </div>
-
-                    <div class="border-t pt-3 space-y-1.5 text-xs bg-red-50/60 p-3.5 rounded-2xl border border-red-100">
-                        <div class="flex justify-between text-gray-600 font-bold">
-                            <span>จำนวนสินค้ารวม:</span>
-                            <span id="summary-total-qty" class="text-gray-900 text-sm">0 หน่วย</span>
-                        </div>
-                        <div class="flex justify-between text-gray-600 font-bold">
-                            <span>ส่วนลดโปรโมชั่น (2% ล็อกอัตโนมัติ):</span>
-                            <span id="summary-total-discount" class="text-red-600 text-sm">0.00 ฿</span>
-                        </div>
-                        <div class="flex justify-between items-center text-base font-black border-t pt-2 mt-1">
-                            <span class="text-gray-800">ยอดชำระสุทธิ (รวม VAT 7%):</span> 
-                            <span id="cartTotalPrice" class="text-red-600 text-2xl font-black">0.00 ฿</span>
-                        </div>
-                    </div>
-
-                    <button onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 text-white font-black py-4 rounded-2xl text-base shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
-                        <span>💳</span> ดำเนินการชำระเงิน [F9]
-                    </button>
+            <!-- ฝั่งขวา: ตะกร้าสินค้าออนไลน์ (ซ่อนบนมือถือโดยแสดงผ่าน Tab Bar ด้านล่างแทน, และแสดงปกติบนจอ Desktop) -->
+            <div class="hidden lg:block lg:col-span-5 space-y-4">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3 sticky top-20" id="desktop-cart-container">
+                    <!-- เนื้อหาตะกร้าจะถูกเรนเดอร์ร่วมกัน -->
                 </div>
             </div>
 
         </main>
     </div>
 
-    <!-- ================= Modals ================= -->
+    <!-- ================= Mobile Tab Bar (แสดงเฉพาะในโทรศัพท์มือถือ) ================= -->
+    <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-red-200 p-3 z-40 flex items-center justify-between shadow-2xl">
+        <div class="flex items-center gap-2">
+            <span class="bg-red-100 text-red-700 p-2.5 rounded-2xl text-lg font-bold">🛒</span>
+            <div>
+                <p class="text-[11px] text-gray-500 font-bold">ยอดสุทธิรวม:</p>
+                <p id="mobile-tabbar-total" class="text-base font-black text-red-600">0.00 ฿</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="openMobileCartModal()" class="bg-red-600 hover:bg-red-700 text-white font-black px-5 py-3 rounded-2xl text-xs shadow-md flex items-center gap-1.5">
+                <span>📦 ดูตะกร้า</span> (<span id="mobile-tabbar-qty">0</span>)
+            </button>
+            <button onclick="openCheckoutModal()" class="bg-slate-900 text-white font-black px-4 py-3 rounded-2xl text-xs shadow-md">
+                ชำระเงิน
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= Mobile Cart Modal (เปิดเมื่อกด Tab Bar ดูตะกร้า) ================= -->
+    <div id="mobile-cart-modal" class="hidden fixed inset-0 bg-black/80 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-md">
+        <div class="bg-white w-full max-w-lg rounded-t-[2.5rem] sm:rounded-3xl shadow-2xl p-5 relative flex flex-col max-h-[85vh]">
+            <button onclick="closeMobileCartModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
+            <div id="mobile-modal-cart-content" class="space-y-4 overflow-y-auto flex-grow pr-1">
+                <!-- เนื้อหาตะกร้าในมือถือ -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Modals อื่นๆ ================= -->
     <div id="staff-report-modal" class="hidden fixed inset-0 bg-black/80 z-[150] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-5 relative flex flex-col max-h-[90vh]">
             <button onclick="closeStaffReportModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
@@ -561,6 +552,7 @@
             document.getElementById('post-confirm-actions').classList.add('hidden');
             checkSlipUploaded();
             handlePaymentMethodChange();
+            closeMobileCartModal();
             document.getElementById('checkout-modal').classList.remove('hidden');
         }
 
@@ -658,7 +650,7 @@
         }
 
         function generateBillData() {
-            const netStr = document.getElementById('pay-modal-net').innerText.replace(/,/g, '').replace(' ฿', '');
+            const netStr = document.getElementById('cartTotalPrice').innerText.replace(/,/g, '').replace(' ฿', '');
             const net = parseFloat(netStr) || 0;
             const discount = (currentSubtotal * 2) / 100;
             const vat = (currentSubtotal - discount) * 0.07;
@@ -806,44 +798,95 @@
         }
 
         function renderCart() {
-            const container = document.getElementById('cartItemList');
-            container.innerHTML = '';
             let total = 0, totalQty = 0;
+            let itemsHtml = '';
 
             if(cartItems.length === 0) {
-                container.innerHTML = `<p class="text-center py-6 text-gray-400 text-xs font-medium">ยังไม่มีสินค้าในตะกร้าของคุณ</p>`;
-                document.getElementById('cartTotalPrice').innerText = "0.00 ฿";
-                document.getElementById('summary-total-qty').innerText = "0 หน่วย";
-                document.getElementById('summary-total-discount').innerText = "0.00 ฿";
-                filterProducts();
-                return;
+                itemsHtml = `<p class="text-center py-6 text-gray-400 text-xs font-medium">ยังไม่มีสินค้าในตะกร้าของคุณ</p>`;
+            } else {
+                cartItems.forEach((item, idx) => {
+                    let sum = item.price * item.qty;
+                    total += sum; totalQty += item.qty;
+                    itemsHtml += `
+                        <div class="border rounded-2xl p-3 flex justify-between items-center bg-gray-50/80 text-xs shadow-sm">
+                            <div class="pr-2">
+                                <div class="font-bold text-gray-900 text-sm">${item.name}</div>
+                                <div class="text-red-600 font-bold mt-0.5">${sum.toLocaleString()} ฿</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="1" value="${item.qty}" onchange="updateCartQty(${idx}, this.value)" class="w-16 border-2 rounded-xl text-center py-1.5 font-bold bg-white">
+                                <button onclick="removeCartItem(${idx})" class="text-red-500 font-bold p-1 text-base hover:scale-110 transition" title="ลบสินค้า">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
             }
-
-            cartItems.forEach((item, idx) => {
-                let sum = item.price * item.qty;
-                total += sum; totalQty += item.qty;
-                
-                // ใช้ปุ่มไอคอนถังขยะ 🗑️ ปกติ ไม่ต้องปัดซ้าย
-                container.innerHTML += `
-                    <div class="border rounded-2xl p-3 flex justify-between items-center bg-gray-50/80 text-xs shadow-sm">
-                        <div class="pr-2">
-                            <div class="font-bold text-gray-900 text-sm">${item.name}</div>
-                            <div class="text-red-600 font-bold mt-0.5">${sum.toLocaleString()} ฿</div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <input type="number" min="1" value="${item.qty}" onchange="updateCartQty(${idx}, this.value)" class="w-16 border-2 rounded-xl text-center py-1.5 font-bold bg-white">
-                            <button onclick="removeCartItem(${idx})" class="text-red-500 font-bold p-1 text-base hover:scale-110 transition" title="ลบสินค้า">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            });
 
             const discount = (total * 2) / 100;
             const net = (total - discount) + ((total - discount) * 0.07);
-            document.getElementById('cartTotalPrice').innerText = net.toLocaleString(undefined, {minimumFractionDigits: 2}) + " ฿";
-            document.getElementById('summary-total-qty').innerText = totalQty + " หน่วย";
-            document.getElementById('summary-total-discount').innerText = discount.toLocaleString(undefined, {minimumFractionDigits: 2}) + " ฿";
+
+            // เรนเดอร์ตะกร้าทั้งสำหรับหน้าจอ Desktop และ Mobile Modal
+            const cartFullUI = `
+                <div class="flex justify-between items-center border-b pb-2.5">
+                    <h2 class="text-base font-black text-red-700">🧾 ตะกร้าสินค้าออนไลน์</h2>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openMemberModal()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-2xl text-xs font-bold shadow-sm">🏢 เลือกร้านค้า</button>
+                        <button onclick="clearCart()" class="text-gray-400 hover:text-red-600 p-2 text-xs font-bold">🗑️ ล้าง</button>
+                    </div>
+                </div>
+                
+                <div id="selected-member-display" class="${selectedMemberData ? '' : 'hidden'} bg-red-50 border border-red-200 p-3 rounded-2xl text-xs flex justify-between items-center shadow-sm">
+                    <div>
+                        <span class="font-bold text-red-900 block text-sm">🏢 ร้าน: <span id="disp-owner" class="text-gray-900">${selectedMemberData ? selectedMemberData.petName : ''}</span> (<span id="disp-pet" class="text-gray-700">${selectedMemberData ? selectedMemberData.ownerName : ''}</span>)</span>
+                        <span class="text-xs text-gray-600 mt-0.5 block">📍 <span id="disp-address">${selectedMemberData ? selectedMemberData.address : ''}</span> | 📞 <span id="disp-phone">${selectedMemberData ? selectedMemberData.phone : ''}</span></span>
+                    </div>
+                    <button onclick="clearSelectedMember()" class="text-red-500 font-bold text-base px-2 bg-white rounded-full shadow-sm">✕</button>
+                </div>
+
+                <div class="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+                    ${itemsHtml}
+                </div>
+
+                <div class="border-t pt-3 space-y-1.5 text-xs bg-red-50/60 p-3.5 rounded-2xl border border-red-100">
+                    <div class="flex justify-between text-gray-600 font-bold">
+                        <span>จำนวนสินค้ารวม:</span>
+                        <span class="text-gray-900 text-sm">${totalQty} หน่วย</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600 font-bold">
+                        <span>ส่วนลดโปรโมชั่น (2% ล็อกอัตโนมัติ):</span>
+                        <span class="text-red-600 text-sm">${discount.toFixed(2)} ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center text-base font-black border-t pt-2 mt-1">
+                        <span class="text-gray-800">ยอดชำระสุทธิ (รวม VAT 7%):</span> 
+                        <span id="cartTotalPrice" class="text-red-600 text-2xl font-black">${net.toLocaleString(undefined, {minimumFractionDigits: 2})} ฿</span>
+                    </div>
+                </div>
+
+                <button onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 text-white font-black py-4 rounded-2xl text-base shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
+                    <span>💳</span> ดำเนินการชำระเงิน [F9]
+                </button>
+            `;
+
+            // อัปเดตฝั่ง Desktop
+            const desktopContainer = document.getElementById('desktop-cart-container');
+            if(desktopContainer) desktopContainer.innerHTML = cartFullUI;
+
+            // อัปเดตฝั่ง Mobile Modal
+            const mobileModalContent = document.getElementById('mobile-modal-cart-content');
+            if(mobileModalContent) mobileModalContent.innerHTML = cartFullUI;
+
+            // อัปเดต Tab Bar ด้านล่างมือถือ
+            document.getElementById('mobile-tabbar-total').innerText = net.toLocaleString(undefined, {minimumFractionDigits: 2}) + " ฿";
+            document.getElementById('mobile-tabbar-qty').innerText = totalQty;
+
             filterProducts();
+        }
+
+        function openMobileCartModal() {
+            document.getElementById('mobile-cart-modal').classList.remove('hidden');
+        }
+        function closeMobileCartModal() {
+            document.getElementById('mobile-cart-modal').classList.add('hidden');
         }
 
         function openMemberModal() {
@@ -899,16 +942,12 @@
 
         function selectMember(i) {
             selectedMemberData = membersData[i];
-            document.getElementById('disp-owner').innerText = selectedMemberData.petName;
-            document.getElementById('disp-pet').innerText = selectedMemberData.ownerName;
-            document.getElementById('disp-phone').innerText = selectedMemberData.phone;
-            document.getElementById('disp-address').innerText = selectedMemberData.address;
-            document.getElementById('selected-member-display').classList.remove('hidden');
+            renderCart();
             closeMemberModal();
         }
         function clearSelectedMember() {
             selectedMemberData = null;
-            document.getElementById('selected-member-display').classList.add('hidden');
+            renderCart();
         }
 
         function openStaffReportModal() {
