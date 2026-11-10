@@ -200,15 +200,33 @@
         </div>
     </div>
 
+    <!-- Modal เลือกร้านค้า + เพิ่มร้านค้าใหม่ -->
     <div id="member-modal" class="hidden fixed inset-0 bg-black/80 z-[130] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 relative flex flex-col max-h-[90vh]">
             <button onclick="closeMemberModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
-            <h3 class="text-base font-bold text-red-700 mb-3">🏢 เลือกข้อมูลร้านค้าจัดส่ง</h3>
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-base font-bold text-red-700">🏢 เลือกร้านค้าจัดส่ง</h3>
+                <button onclick="toggleAddMemberForm()" id="toggle-add-member-btn" class="bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded-xl text-xs font-bold">➕ เพิ่มร้านใหม่</button>
+            </div>
+
+            <!-- ฟอร์มเพิ่มร้านค้าใหม่ (ซ่อนไว้ก่อน) -->
+            <div id="add-member-form-box" class="hidden bg-slate-50 border border-red-200 p-3.5 rounded-2xl mb-3 space-y-2 text-xs">
+                <p class="font-bold text-red-800">📝 กรอกข้อมูลร้านค้าใหม่</p>
+                <input type="text" id="new-pet-name" placeholder="ชื่อร้านค้า (เช่น พลอยเพ็ทช็อป)" class="w-full border rounded-xl p-2.5 font-bold bg-white">
+                <input type="text" id="new-owner-name" placeholder="ชื่อเจ้าของร้าน (เช่น คุณพลอย)" class="w-full border rounded-xl p-2.5 font-bold bg-white">
+                <input type="text" id="new-address" placeholder="ที่อยู่ / โซน (เช่น อ.พุนพิน สุราษฎร์ฯ)" class="w-full border rounded-xl p-2.5 font-bold bg-white">
+                <input type="text" id="new-phone" placeholder="เบอร์โทรศัพท์ (เช่น 0891234567)" class="w-full border rounded-xl p-2.5 font-bold bg-white">
+                <div class="flex gap-2 pt-1">
+                    <button onclick="saveNewMember()" class="flex-1 bg-red-600 text-white font-bold py-2 rounded-xl">💾 บันทึกร้านค้า</button>
+                    <button onclick="toggleAddMemberForm()" class="bg-gray-200 text-gray-700 font-bold px-3 py-2 rounded-xl">ยกเลิก</button>
+                </div>
+            </div>
+
             <div id="member-list-container" class="space-y-2.5 overflow-y-auto flex-grow pr-1"></div>
         </div>
     </div>
 
-    <!-- Checkout Modal พร้อมปุ่มยืนยันการจ่ายเงินก่อนเปิดบิล A4 -->
+    <!-- Checkout Modal -->
     <div id="checkout-modal" class="hidden fixed inset-0 bg-black/80 z-[150] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 relative max-h-[95vh] overflow-y-auto space-y-4 text-sm">
             <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
@@ -279,14 +297,14 @@
                 <p id="slip-warning-text" class="text-[11px] text-red-600 font-bold">⚠️ กรุณาแนบสลิปหลักฐานการชำระเงิน มิฉะนั้นจะไม่สามารถยืนยันการจ่ายเงินได้</p>
             </div>
 
-            <!-- ปุ่มยืนยันการจ่ายเงิน (ขั้นตอนแรกหลังแนบสลิป) -->
+            <!-- ปุ่มยืนยันการจ่ายเงิน -->
             <div class="pt-2">
                 <button onclick="handleConfirmPaymentClick()" id="btn-initial-confirm" disabled class="w-full bg-slate-800 text-white font-black py-4 rounded-2xl text-sm shadow flex items-center justify-center gap-2 opacity-50 cursor-not-allowed">
                     <span>✅</span> ยืนยันการจ่ายเงิน
                 </button>
             </div>
 
-            <!-- ปุ่มดูบิล A4, บันทึก PDF, ส่ง LINE (จะปลดล็อกหลังจากกด "ยืนยันการจ่ายเงิน" แล้ว) -->
+            <!-- ปุ่มดูบิล A4, บันทึก PDF, ส่ง LINE -->
             <div id="post-confirm-actions" class="hidden flex flex-col gap-2 pt-2 border-t">
                 <button onclick="openReceiptModalPreview()" class="w-full bg-slate-700 hover:bg-black text-white font-bold py-3 rounded-2xl text-xs shadow transition flex items-center justify-center gap-1.5">
                     <span>📄</span> ตรวจสอบรายละเอียดบิล (A4 Preview)
@@ -454,7 +472,6 @@
             }
         }
 
-        // แสดงรายการสินค้า พร้อมคำนวณตัวเลขจำนวนสะสมในช่องกรอกหน้าแคตตาล็อกแบบเรียลไทม์
         function renderProductList(list) {
             const container = document.getElementById('googleSheetProductList');
             container.innerHTML = '';
@@ -463,7 +480,6 @@
                 return;
             }
             list.forEach(p => {
-                // เช็คว่าในตะกร้ามีสินค้านี้อยู่เท่าไหร่แล้ว เพื่อเอามาแสดงรวมในช่องกรอก
                 const existingCartItem = cartItems.find(i => i.name === p.name);
                 const currentQtyInCart = existingCartItem ? existingCartItem.qty : 1;
 
@@ -493,7 +509,7 @@
             
             const ex = cartItems.find(i => i.name === name);
             if(ex) {
-                ex.qty = qty; // อัปเดตตามจำนวนที่กรอกรวมล่าสุด
+                ex.qty = qty;
             } else {
                 cartItems.push({ name, price, qty: qty });
             }
@@ -533,6 +549,7 @@
             isMixedPaymentValid = true;
 
             // รีเซ็ตปุ่มขั้นตอน
+            document.getElementById('btn-initial-confirm').classList.remove('hidden');
             document.getElementById('post-confirm-actions').classList.add('hidden');
             checkSlipUploaded();
             handlePaymentMethodChange();
@@ -604,12 +621,10 @@
             }
         }
 
-        // เมื่อกดปุ่ม "ยืนยันการจ่ายเงิน" หลังจากแนบสลิปแล้ว จะเด้ง Pop-up แจ้งเตือนเงื่อนไขร้านค้า แล้วจึงเปิดเมนูดูบิล A4 / PDF / LINE
         function handleConfirmPaymentClick() {
             const confirmed = confirm("⚠️ คำเตือนสำคัญจากทางร้าน\n\nคุณได้ตรวจสอบรายการสั่งซื้อเรียบร้อยแล้ว ทางร้านจะไม่รับผิดชอบใดๆ ทั้งสิ้นหากท่านสั่งสินค้าผิดรุ่น ผิดขนาด หรือต้องการแก้ไขบิลหลังจากยืนยันรายการนี้ ท่านจะต้องทำรายการสั่งซื้อใหม่ทั้งหมดเท่านั้น\n\nกด 'OK' เพื่อยอมรับและดำเนินการต่อ");
             if (!confirmed) return;
 
-            // ซ่อนปุ่มยืนยันอันแรก และแสดงปุ่มตรวจบิล A4 / PDF / LINE
             document.getElementById('btn-initial-confirm').classList.add('hidden');
             document.getElementById('post-confirm-actions').classList.remove('hidden');
             alert("✅ ยืนยันการจ่ายเงินสำเร็จ! ตอนนี้ท่านสามารถตรวจสอบบิล A4 หรือบันทึก PDF / ส่ง LINE OA ได้แล้วค่ะ");
@@ -735,7 +750,8 @@
 
             html2pdf().from(element).set(opt).save().then(() => {
                 element.classList.add('hidden');
-                finalizeCheckoutSuccess(bill);
+                // บันทึกบิลลงประวัติหลังบ้าน แต่ยังคงเปิดหน้าต่าง Checkout ค้างไว้ตามที่ต้องการ
+                completedSalesBills.unshift(bill);
             });
         }
 
@@ -754,15 +770,8 @@
             const lineShareUrl = `https://line.me/R/msg/text/?` + encodeURIComponent(lineMessage);
             window.open(lineShareUrl, '_blank');
 
-            finalizeCheckoutSuccess(bill);
-        }
-
-        function finalizeCheckoutSuccess(bill) {
+            // บันทึกบิลลงประวัติหลังบ้าน แต่ยังคงเปิดหน้าต่าง Checkout ค้างไว้ตามที่ต้องการ
             completedSalesBills.unshift(bill);
-            closeCheckoutModal();
-            closeReceiptModalPreview();
-            clearCart();
-            alert(`🎉 ทำรายการสั่งซื้อ ${bill.taxId} สำเร็จเรียบร้อยค่ะเถ้าแก่!`);
         }
 
         function renderCart() {
@@ -801,11 +810,16 @@
             document.getElementById('cartTotalPrice').innerText = net.toLocaleString(undefined, {minimumFractionDigits: 2}) + " ฿";
             document.getElementById('summary-total-qty').innerText = totalQty + " หน่วย";
             document.getElementById('summary-total-discount').innerText = discount.toLocaleString(undefined, {minimumFractionDigits: 2}) + " ฿";
-            filterProducts(); // รีเฟรชหน้าแคตตาล็อกให้ตัวเลขสะสมตรงกับในตะกร้า
+            filterProducts();
         }
 
         function openMemberModal() {
             document.getElementById('member-modal').classList.remove('hidden');
+            renderMemberList();
+        }
+        function closeMemberModal() { document.getElementById('member-modal').classList.add('hidden'); }
+
+        function renderMemberList() {
             const cont = document.getElementById('member-list-container');
             cont.innerHTML = '';
             membersData.forEach((m, idx) => {
@@ -820,7 +834,37 @@
                 `;
             });
         }
-        function closeMemberModal() { document.getElementById('member-modal').classList.add('hidden'); }
+
+        function toggleAddMemberForm() {
+            const formBox = document.getElementById('add-member-form-box');
+            formBox.classList.toggle('hidden');
+            if(!formBox.classList.contains('hidden')) {
+                document.getElementById('new-pet-name').value = '';
+                document.getElementById('new-owner-name').value = '';
+                document.getElementById('new-address').value = '';
+                document.getElementById('new-phone').value = '';
+            }
+        }
+
+        function saveNewMember() {
+            const petName = document.getElementById('new-pet-name').value.trim();
+            const ownerName = document.getElementById('new-owner-name').value.trim();
+            const address = document.getElementById('new-address').value.trim();
+            const phone = document.getElementById('new-phone').value.trim();
+
+            if(!petName || !ownerName) {
+                alert('กรุณากรอกชื่อร้านค้าและชื่อเจ้าของให้ครบถ้วน');
+                return;
+            }
+
+            membersData.push({ petName, ownerName, address: address || 'สุราษฎร์ธานี', phone: phone || '-' });
+            toggleAddMemberForm();
+            renderMemberList();
+            // เลือกใช้อัตโนมัติทันทีที่เพิ่มเสร็จ
+            selectMember(membersData.length - 1);
+            alert(`✅ เพิ่มร้านค้า "${petName}" เรียบร้อยแล้วค่ะ!`);
+        }
+
         function selectMember(i) {
             selectedMemberData = membersData[i];
             document.getElementById('disp-owner').innerText = selectedMemberData.petName;
