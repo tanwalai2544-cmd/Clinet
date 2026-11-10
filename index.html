@@ -515,20 +515,20 @@
             });
         }
 
-        // ปรับแก้: สั่งเกินสต๊อกให้คิดราคาตามจำนวนที่กดสั่งซื้อจริงทั้งหมดทันที
+        // ระบบเพิ่มลงตะกร้า: ถ้าสั่งเกินสต๊อก คิดเงินเต็มจำนวน และสะสมส่วนเกินไปเข้าเมนูคงค้างหลังชำระเงินเสร็จ
         function addCatalogProductToCart(code, name, price, stock, unit, isBackorderFlag) {
             const qtyInput = document.getElementById(`catalog-qty-${code}`);
             const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
 
             if(isBackorderFlag === 0 && qty > stock) {
-                alert(`⚠️ แจ้งเตือนสต๊อก:\nสินค้า "${name}" มีในสต๊อกเพียง ${stock} ${unit} (ท่านสั่ง ${qty} ${unit})\n- ระบบอนุญาตให้สั่งซื้อตามจำนวนที่ท่านต้องการ (${qty} ${unit}) และคิดราคาปกติทั้งหมดครับ`);
+                alert(`⚠️ แจ้งเตือนสต๊อก:\nสินค้า "${name}" มีในสต๊อก ${stock} ${unit} (ท่านสั่ง ${qty} ${unit})\n- ระบบจะคิดเงินตามจำนวนที่ท่านสั่งซื้อเต็มจำนวนปกติ\n- และจำนวนที่เกินสต๊อก (${qty - stock} ${unit}) จะถูกบันทึกเป็น "สินค้าคงค้างส่ง" เพื่อมารับฟรีในครั้งถัดไปหลังชำระเงินเสร็จสิ้นครับ`);
             }
 
             const ex = cartItems.find(i => i.code === code && i.isBackorder === isBackorderFlag);
             if(ex) {
                 ex.qty = qty;
             } else {
-                cartItems.push({ code, name, price, qty: qty, unit, isBackorder: isBackorderFlag });
+                cartItems.push({ code, name, price, qty: qty, unit, stock, isBackorder: isBackorderFlag });
             }
 
             renderCart();
@@ -696,17 +696,34 @@
             }
         }
 
+        // เมื่อกดชำระเงินสำเร็จครบถ้วน: ย้ายส่วนที่เกินสต๊อกไปเข้าเมนูสินค้าคงค้างโดยอัตโนมัติ
         function handleConfirmPaymentClick() {
-            const confirmed = confirm("⚠️ ยืนยันการชำระเงิน?\n\nกด 'OK' เพื่อบันทึกคำสั่งซื้อลงในประวัติ");
+            const confirmed = confirm("⚠️ ยืนยันการชำระเงิน?\n\nกด 'OK' เพื่อบันทึกคำสั่งซื้อลงในประวัติ และบันทึกสินค้าคงค้างส่ง (ถ้ามี) ไปยังเมนูคงค้าง");
             if (!confirmed) return;
 
             document.getElementById('btn-initial-confirm').classList.add('hidden');
             document.getElementById('post-confirm-actions').classList.remove('hidden');
             
+            // ตรวจสอบสินค้าในตะกร้าตัวไหนที่สั่งเกินสต๊อกจริง ให้เด้งไปเข้า Backorder รอรับรอบถัดไป
+            cartItems.forEach(item => {
+                if(item.isBackorder === 0 && item.stock !== undefined && item.qty > item.stock) {
+                    let excessQty = item.qty - item.stock;
+                    backorderItems.push({
+                        code: item.code,
+                        name: `${item.name} (คงค้างส่ง)`,
+                        price: item.price,
+                        qty: excessQty,
+                        unit: item.unit,
+                        date: new Date().toLocaleDateString('th-TH')
+                    });
+                }
+            });
+            updateBackorderBadge();
+
             const bill = generateBillData();
             completedSalesBills.unshift(bill);
 
-            alert("✅ ยืนยันการจ่ายเงินสำเร็จและบันทึกลงประวัติเรียบร้อย!");
+            alert("✅ ยืนยันการจ่ายเงินสำเร็จ! บันทึกลงประวัติและแยกสินค้าคงค้างส่งเรียบร้อยแล้วค่ะ");
         }
 
         function generateBillData() {
@@ -872,6 +889,11 @@
                     total += sum; 
                     totalQty += item.qty;
 
+                    let stockWarningBadge = '';
+                    if(item.isBackorder === 0 && item.stock !== undefined && item.qty > item.stock) {
+                        stockWarningBadge = `<br><span class="text-amber-600 font-bold text-[10px]">⚠️ สั่งเกินสต๊อก (${item.qty - item.stock} ${item.unit}) จะถูกแยกไปเข้าเมนูคงค้างหลังชำระเงิน</span>`;
+                    }
+
                     let badgeType = item.isBackorder === 1 
                         ? `<span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-bold">สินค้าคงค้าง (0 ฿)</span>` 
                         : `<span class="text-red-600 font-bold">${sum.toLocaleString()} ฿</span>`;
@@ -880,9 +902,10 @@
                         <div class="border rounded-2xl p-3 flex justify-between items-center bg-gray-50/80 text-xs shadow-sm">
                             <div class="pr-2">
                                 <div class="font-bold text-gray-900 text-sm">${item.name}</div>
-                                <div class="mt-0.5 flex items-center gap-1">
+                                <div class="mt-0.5 flex items-center gap-1 flex-wrap">
                                     <span>จำนวน: ${item.qty} ${item.unit}</span> &bull; ${badgeType}
                                 </div>
+                                ${stockWarningBadge}
                             </div>
                             <div class="flex items-center gap-2">
                                 <input type="number" min="1" value="${item.qty}" onchange="updateCartQty(${idx}, this.value)" class="w-16 border-2 rounded-xl text-center py-1.5 font-bold bg-white">
