@@ -130,12 +130,12 @@
                 </div>
 
                 <div class="relative">
-                    <input type="text" id="productSearchInput" onkeyup="handleSearchKeyup(event)" placeholder="พิมพ์ชื่อสินค้า หรือรหัส (กด Enter)..." class="w-full border-2 border-gray-200 rounded-2xl pl-10 pr-4 py-3.5 text-xs font-bold bg-gray-50 focus:border-red-600 focus:outline-none">
+                    <input type="text" id="productSearchInput" onkeyup="handleSearchKeyup(event)" placeholder="🔍 พิมพ์ชื่อสินค้า หรือรหัส (กด Enter)..." class="w-full border-2 border-gray-200 rounded-2xl pl-10 pr-4 py-3.5 text-xs font-bold bg-gray-50 focus:border-red-600 focus:outline-none">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 text-sm">🔍</span>
                 </div>
             </div>
 
-            <!-- รายการสินค้าพร้อมช่องกรอกจำนวนในหน้าแคตตาล็อก -->
+            <!-- รายการสินค้าพร้อมช่องกรอกจำนวนสะสมเรียลไทม์ -->
             <div class="bg-white p-4 rounded-3xl shadow-sm border border-red-100 space-y-3">
                 <h3 class="text-sm font-bold text-gray-700">📦 รายการสินค้า (ระบุจำนวนแล้วกดหยิบใส่ตะกร้า)</h3>
                 <div id="googleSheetProductList" class="space-y-2.5 max-h-[420px] overflow-y-auto pr-1"></div>
@@ -177,7 +177,7 @@
                     </div>
                 </div>
 
-                <button onclick="handleCheckoutButton()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 text-white font-black py-4 rounded-2xl text-base shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
+                <button onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 text-white font-black py-4 rounded-2xl text-base shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
                     <span>💳</span> ดำเนินการชำระเงิน [F9]
                 </button>
             </div>
@@ -208,7 +208,7 @@
         </div>
     </div>
 
-    <!-- Checkout Modal พร้อมระบบผสมเงินสด/เงินโอน และตรวจสอบสลิป -->
+    <!-- Checkout Modal พร้อมปุ่มยืนยันการจ่ายเงินก่อนเปิดบิล A4 -->
     <div id="checkout-modal" class="hidden fixed inset-0 bg-black/80 z-[150] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 relative max-h-[95vh] overflow-y-auto space-y-4 text-sm">
             <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
@@ -224,7 +224,7 @@
                 <input type="number" id="pay-modal-extra-discount" readonly class="w-28 border rounded-xl p-2 text-right font-black text-red-600 bg-gray-100 text-sm">
             </div>
 
-            <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-200 flex justify-between items-center text-xs font-bold">
+            <div class="bg-gray-50 p-3.5 rounded-2xl border border-red-200 flex justify-between items-center text-xs font-bold">
                 <span>VAT 7% (ล็อกติ๊กไว้ตลอด):</span>
                 <span id="pay-modal-vat-amount" class="text-gray-700 text-sm">0.00 ฿</span>
             </div>
@@ -272,30 +272,30 @@
                 <div class="bg-white p-2 rounded-xl inline-block border font-mono font-bold text-red-600">[ QR CODE READY ]</div>
             </div>
 
-            <!-- ช่องเพิ่มไฟล์หลักฐานการชำระเงิน พร้อมระบบเช็คบังคับ -->
+            <!-- ช่องเพิ่มไฟล์หลักฐานการชำระเงิน -->
             <div class="bg-red-50 border border-red-200 p-3 rounded-2xl text-xs space-y-1.5">
                 <label class="block font-bold text-red-800">📸 แนบหลักฐานการชำระเงิน (สลิปโอนเงิน) <span class="text-red-600">*จำเป็นต้องแนบ</span></label>
                 <input type="file" id="payment-slip-file" accept="image/*" onchange="checkSlipUploaded()" class="w-full text-xs text-gray-500 file:py-1.5 file:px-2.5 file:rounded-xl file:bg-red-600 file:text-white file:font-bold file:border-0 cursor-pointer">
-                <p id="slip-warning-text" class="text-[11px] text-red-600 font-bold">⚠️ กรุณาแนบสลิปหลักฐานการชำระเงิน มิฉะนั้นจะไม่สามารถบันทึกบิลหรือส่ง LINE ได้</p>
+                <p id="slip-warning-text" class="text-[11px] text-red-600 font-bold">⚠️ กรุณาแนบสลิปหลักฐานการชำระเงิน มิฉะนั้นจะไม่สามารถยืนยันการจ่ายเงินได้</p>
             </div>
 
-            <!-- ติ๊กยืนยันข้อกำหนดร้านโดยอัตโนมัติและล็อกไว้ -->
-            <div class="bg-gray-50 p-3 rounded-2xl border text-xs flex items-start gap-2">
-                <input type="checkbox" id="store-terms-checkbox" checked disabled class="mt-0.5 w-4 h-4 text-red-600 rounded cursor-not-allowed shrink-0">
-                <label for="store-terms-checkbox" class="text-gray-700 leading-tight">
-                    ฉันได้ตรวจสอบรายการสั่งซื้อเรียบร้อยแล้ว ทางร้านจะไม่รับผิดชอบใดๆ หากสั่งผิดหรือต้องการแก้บิล ต้องทำรายการใหม่เลย
-                </label>
+            <!-- ปุ่มยืนยันการจ่ายเงิน (ขั้นตอนแรกหลังแนบสลิป) -->
+            <div class="pt-2">
+                <button onclick="handleConfirmPaymentClick()" id="btn-initial-confirm" disabled class="w-full bg-slate-800 text-white font-black py-4 rounded-2xl text-sm shadow flex items-center justify-center gap-2 opacity-50 cursor-not-allowed">
+                    <span>✅</span> ยืนยันการจ่ายเงิน
+                </button>
             </div>
 
-            <div class="flex flex-col gap-2.5 pt-3 border-t">
-                <button onclick="openReceiptModalPreview()" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-3 rounded-2xl text-xs shadow transition flex items-center justify-center gap-1.5">
+            <!-- ปุ่มดูบิล A4, บันทึก PDF, ส่ง LINE (จะปลดล็อกหลังจากกด "ยืนยันการจ่ายเงิน" แล้ว) -->
+            <div id="post-confirm-actions" class="hidden flex flex-col gap-2 pt-2 border-t">
+                <button onclick="openReceiptModalPreview()" class="w-full bg-slate-700 hover:bg-black text-white font-bold py-3 rounded-2xl text-xs shadow transition flex items-center justify-center gap-1.5">
                     <span>📄</span> ตรวจสอบรายละเอียดบิล (A4 Preview)
                 </button>
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="confirmAndDownloadPDF()" id="btn-confirm-pdf" disabled class="bg-red-600 text-white font-black py-3.5 rounded-2xl text-xs shadow flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed">
+                    <button onclick="confirmAndDownloadPDF()" class="bg-red-600 hover:bg-red-700 text-white font-black py-3.5 rounded-2xl text-xs shadow flex items-center justify-center gap-1.5">
                         <span>📥</span> บันทึก PDF
                     </button>
-                    <button onclick="confirmAndShareLine()" id="btn-confirm-line" disabled class="bg-emerald-600 text-white font-black py-3.5 rounded-2xl text-xs shadow flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed">
+                    <button onclick="confirmAndShareLine()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs shadow flex items-center justify-center gap-1.5">
                         <span>💬</span> ส่ง LINE OA
                     </button>
                 </div>
@@ -306,7 +306,7 @@
     <!-- ================= Pop-up แสดงบิลขนาด A4 ละเอียดครบถ้วน ================= -->
     <div id="receipt-modal-preview" class="hidden fixed inset-0 bg-black/80 z-[170] flex items-center justify-center p-3 backdrop-blur-md">
         <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl p-6 relative max-h-[92vh] flex flex-col">
-            <button onclick="closeReceiptModalPreview()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
+            <button onclick="closeReceiptModalPreview()" class="absolute top-4 right-4 text-gray-400 font-bold text-lg bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
             <h3 class="text-base font-bold text-red-700 mb-3 flex items-center gap-2"><span>📄</span> ตัวอย่างบิลขนาด A4 (ตรวจสอบความถูกต้อง)</h3>
             
             <div class="overflow-y-auto flex-grow border border-gray-200 rounded-2xl p-5 bg-white shadow-inner" id="receipt-preview-container"></div>
@@ -454,7 +454,7 @@
             }
         }
 
-        // แสดงรายการสินค้าพร้อมช่องกรอกจำนวนในหน้าแคตตาล็อก
+        // แสดงรายการสินค้า พร้อมคำนวณตัวเลขจำนวนสะสมในช่องกรอกหน้าแคตตาล็อกแบบเรียลไทม์
         function renderProductList(list) {
             const container = document.getElementById('googleSheetProductList');
             container.innerHTML = '';
@@ -463,6 +463,10 @@
                 return;
             }
             list.forEach(p => {
+                // เช็คว่าในตะกร้ามีสินค้านี้อยู่เท่าไหร่แล้ว เพื่อเอามาแสดงรวมในช่องกรอก
+                const existingCartItem = cartItems.find(i => i.name === p.name);
+                const currentQtyInCart = existingCartItem ? existingCartItem.qty : 1;
+
                 const card = document.createElement('div');
                 card.className = 'border-2 border-gray-100 hover:border-red-300 rounded-2xl p-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 shadow-sm transition gap-2';
                 card.innerHTML = `
@@ -474,7 +478,7 @@
                     <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                         <div class="flex items-center gap-1">
                             <span class="text-[11px] font-bold text-gray-600">จำนวน:</span>
-                            <input type="number" id="catalog-qty-${p.code}" min="1" value="1" class="w-16 border-2 rounded-xl text-center py-1 text-xs font-bold bg-white">
+                            <input type="number" id="catalog-qty-${p.code}" min="1" value="${currentQtyInCart}" class="w-16 border-2 rounded-xl text-center py-1 text-xs font-bold bg-white">
                         </div>
                         <button onclick="addCatalogProductToCart('${p.code}', '${p.name.replace(/'/g, "\\'")}', ${p.price})" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-2 rounded-xl text-xs shadow transition active:scale-95">＋ ใส่ตะกร้า</button>
                     </div>
@@ -488,10 +492,11 @@
             const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
             
             const ex = cartItems.find(i => i.name === name);
-            if(ex) ex.qty += qty;
-            else cartItems.push({ name, price, qty: qty });
-            
-            if(qtyInput) qtyInput.value = '1';
+            if(ex) {
+                ex.qty = qty; // อัปเดตตามจำนวนที่กรอกรวมล่าสุด
+            } else {
+                cartItems.push({ name, price, qty: qty });
+            }
             renderCart();
         }
 
@@ -502,22 +507,13 @@
             renderCart();
         }
 
-        function removeCartItem(i) { cartItems.splice(i, 1); renderCart(); }
-        function clearCart() { cartItems = []; renderCart(); }
+        function removeCartItem(i) { cartItems.splice(i, 1); renderCart(); filterProducts(); }
+        function clearCart() { cartItems = []; renderCart(); filterProducts(); }
 
         let currentSubtotal = 0;
 
-        // เมื่อกดปุ่มชำระเงิน จะแสดง Pop-up แจ้งเตือนเงื่อนไขร้านค้าก่อน
-        function handleCheckoutButton() {
-            if (cartItems.length === 0) { alert('กรุณาเลือกสินค้าใส่ตะกร้าก่อน'); return; }
-
-            const confirmed = confirm("⚠️ คำเตือนสำคัญจากทางร้าน\n\nคุณได้ตรวจสอบรายการสั่งซื้อเรียบร้อยแล้ว ทางร้านจะไม่รับผิดชอบใดๆ ทั้งสิ้นหากท่านสั่งสินค้าผิดรุ่น ผิดขนาด หรือต้องการแก้ไขบิลหลังจากยืนยันรายการนี้ ท่านจะต้องทำรายการสั่งซื้อใหม่ทั้งหมดเท่านั้น\n\nกด 'OK' เพื่อดำเนินการชำระเงินต่อ");
-            if (!confirmed) return;
-
-            openCheckoutModal();
-        }
-
         function openCheckoutModal() {
+            if (cartItems.length === 0) { alert('กรุณาเลือกสินค้าใส่ตะกร้าก่อน'); return; }
             currentSubtotal = cartItems.reduce((sum, i) => sum + (i.price * i.qty), 0);
             document.getElementById('pay-modal-total').innerText = currentSubtotal.toLocaleString() + ' ฿';
             
@@ -536,6 +532,8 @@
             document.getElementById('payment-slip-file').value = '';
             isMixedPaymentValid = true;
 
+            // รีเซ็ตปุ่มขั้นตอน
+            document.getElementById('post-confirm-actions').classList.add('hidden');
             checkSlipUploaded();
             handlePaymentMethodChange();
             document.getElementById('checkout-modal').classList.remove('hidden');
@@ -579,13 +577,11 @@
             checkSlipUploaded();
         }
 
-        // ตรวจสอบว่าอัปโหลดสลิปแล้วหรือยังเพื่อเปิด/ปิดปุ่มบันทึก
         function checkSlipUploaded() {
             const slipInput = document.getElementById('payment-slip-file');
             const hasSlip = slipInput.files.length > 0;
             const warningText = document.getElementById('slip-warning-text');
-            const btnPdf = document.getElementById('btn-confirm-pdf');
-            const btnLine = document.getElementById('btn-confirm-line');
+            const btnInitial = document.getElementById('btn-initial-confirm');
 
             const method = document.querySelector('input[name="payMethod"]:checked').value;
             const mixedValid = (method !== 'mixed' || isMixedPaymentValid);
@@ -593,21 +589,30 @@
             if (hasSlip && mixedValid) {
                 warningText.innerText = "✅ แนบหลักฐานการชำระเงินเรียบร้อยแล้ว";
                 warningText.className = "text-[11px] text-emerald-700 font-bold";
-                btnPdf.disabled = false; btnLine.disabled = false;
-                btnPdf.classList.remove('opacity-50', 'cursor-not-allowed');
-                btnLine.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnInitial.disabled = false;
+                btnInitial.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
                 if (!hasSlip) {
-                    warningText.innerText = "⚠️ กรุณาแนบสลิปหลักฐานการชำระเงิน มิฉะนั้นจะไม่สามารถบันทึกบิลหรือส่ง LINE ได้";
+                    warningText.innerText = "⚠️ กรุณาแนบสลิปหลักฐานการชำระเงิน มิฉะนั้นจะไม่สามารถยืนยันการจ่ายเงินได้";
                     warningText.className = "text-[11px] text-red-600 font-bold";
                 } else if (!mixedValid) {
                     warningText.innerText = "⚠️ ยอดชำระแบบผสมยังไม่ถูกต้องพอดีกับยอดสุทธิ";
                     warningText.className = "text-[11px] text-red-600 font-bold";
                 }
-                btnPdf.disabled = true; btnLine.disabled = true;
-                btnPdf.classList.add('opacity-50', 'cursor-not-allowed');
-                btnLine.classList.add('opacity-50', 'cursor-not-allowed');
+                btnInitial.disabled = true;
+                btnInitial.classList.add('opacity-50', 'cursor-not-allowed');
             }
+        }
+
+        // เมื่อกดปุ่ม "ยืนยันการจ่ายเงิน" หลังจากแนบสลิปแล้ว จะเด้ง Pop-up แจ้งเตือนเงื่อนไขร้านค้า แล้วจึงเปิดเมนูดูบิล A4 / PDF / LINE
+        function handleConfirmPaymentClick() {
+            const confirmed = confirm("⚠️ คำเตือนสำคัญจากทางร้าน\n\nคุณได้ตรวจสอบรายการสั่งซื้อเรียบร้อยแล้ว ทางร้านจะไม่รับผิดชอบใดๆ ทั้งสิ้นหากท่านสั่งสินค้าผิดรุ่น ผิดขนาด หรือต้องการแก้ไขบิลหลังจากยืนยันรายการนี้ ท่านจะต้องทำรายการสั่งซื้อใหม่ทั้งหมดเท่านั้น\n\nกด 'OK' เพื่อยอมรับและดำเนินการต่อ");
+            if (!confirmed) return;
+
+            // ซ่อนปุ่มยืนยันอันแรก และแสดงปุ่มตรวจบิล A4 / PDF / LINE
+            document.getElementById('btn-initial-confirm').classList.add('hidden');
+            document.getElementById('post-confirm-actions').classList.remove('hidden');
+            alert("✅ ยืนยันการจ่ายเงินสำเร็จ! ตอนนี้ท่านสามารถตรวจสอบบิล A4 หรือบันทึก PDF / ส่ง LINE OA ได้แล้วค่ะ");
         }
 
         function generateBillData() {
@@ -770,6 +775,7 @@
                 document.getElementById('cartTotalPrice').innerText = "0.00 ฿";
                 document.getElementById('summary-total-qty').innerText = "0 หน่วย";
                 document.getElementById('summary-total-discount').innerText = "0.00 ฿";
+                filterProducts();
                 return;
             }
 
@@ -795,6 +801,7 @@
             document.getElementById('cartTotalPrice').innerText = net.toLocaleString(undefined, {minimumFractionDigits: 2}) + " ฿";
             document.getElementById('summary-total-qty').innerText = totalQty + " หน่วย";
             document.getElementById('summary-total-discount').innerText = discount.toLocaleString(undefined, {minimumFractionDigits: 2}) + " ฿";
+            filterProducts(); // รีเฟรชหน้าแคตตาล็อกให้ตัวเลขสะสมตรงกับในตะกร้า
         }
 
         function openMemberModal() {
