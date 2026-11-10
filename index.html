@@ -47,7 +47,8 @@
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">รหัสผ่านบัญชีลูกค้า</label>
                     <div class="relative">
-                        <input type="password" id="login-pass" required placeholder="••••••••" class="w-full border border-gray-300 rounded-2xl px-4 py-3.5 text-base focus:ring-2 focus:ring-red-500 focus:outline-none pr-12 transition shadow-sm" value="1234">
+                        <!-- เอาค่า default password ออกแล้ว เพื่อบังคับให้กดขอรับรหัสก่อน -->
+                        <input type="password" id="login-pass" required placeholder="กรุณากรอกรหัสผ่านใหม่ที่ได้รับ" class="w-full border border-gray-300 rounded-2xl px-4 py-3.5 text-base focus:ring-2 focus:ring-red-500 focus:outline-none pr-12 transition shadow-sm">
                         <button type="button" onclick="togglePassword('login-pass', 'eye-login')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-700 focus:outline-none text-xl">
                             <span id="eye-login">👁️</span>
                         </button>
@@ -345,23 +346,18 @@
                     <div class="flex justify-between items-center">
                         <span class="text-red-900 font-bold text-base">🏷️ ส่วนลดพิเศษท้ายบิล (ล็อกอัตโนมัติ 2%)</span>
                         <div class="flex items-center gap-2">
-                            <input type="number" id="pay-modal-extra-discount" oninput="calculateFinalCheckout()" value="0" min="0" step="0.01" class="w-32 border border-gray-300 rounded-xl p-2.5 text-right font-extrabold text-red-600 focus:ring-2 focus:ring-red-500 focus:outline-none bg-white text-lg">
+                            <!-- ล็อกให้อ่านอย่างเดียว (readonly) เพื่อไม่ให้ผู้ใช้แก้ไขได้ -->
+                            <input type="number" id="pay-modal-extra-discount" readonly value="0" min="0" step="0.01" class="w-32 border border-gray-300 rounded-xl p-2.5 text-right font-extrabold text-red-600 bg-gray-100 text-lg cursor-not-allowed">
                             <span class="text-gray-700 font-bold">บาท</span>
                         </div>
-                    </div>
-                    <div class="flex items-center gap-2 pt-1">
-                        <span class="text-xs font-bold text-gray-600">ส่วนลดด่วน:</span>
-                        <button type="button" onclick="applyPercentDiscount(2)" class="flex-1 bg-white hover:bg-red-100 border border-red-300 text-red-700 font-bold py-2 rounded-xl text-xs transition shadow-sm">ลด 2%</button>
-                        <button type="button" onclick="applyPercentDiscount(3)" class="flex-1 bg-white hover:bg-red-100 border border-red-300 text-red-700 font-bold py-2 rounded-xl text-xs transition shadow-sm">ลด 3%</button>
-                        <button type="button" onclick="applyPercentDiscount(5)" class="flex-1 bg-white hover:bg-red-100 border border-red-300 text-red-700 font-bold py-2 rounded-xl text-xs transition shadow-sm">ลด 5%</button>
-                        <button type="button" onclick="applyPercentDiscount(0)" class="px-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 rounded-xl text-xs transition shadow-sm">รีเซ็ต</button>
                     </div>
                 </div>
 
                 <div class="flex justify-between items-center text-base bg-gray-50 p-3.5 rounded-2xl border border-gray-200 shadow-inner">
-                    <label class="flex items-center gap-2.5 font-bold text-gray-800 cursor-pointer">
-                        <input type="checkbox" id="pay-modal-vat-checkbox" checked onchange="calculateFinalCheckout()" class="w-5 h-5 text-red-600 rounded">
-                        <span>คำนวณ VAT 7% เพิ่มเติม (ล็อกติ๊กไว้)</span>
+                    <label class="flex items-center gap-2.5 font-bold text-gray-800 cursor-not-allowed">
+                        <!-- ล็อกติ๊กไว้ และกำหนดให้ disabled เพื่อไม่ให้เอาติ๊กออกได้ -->
+                        <input type="checkbox" id="pay-modal-vat-checkbox" checked disabled class="w-5 h-5 text-red-600 rounded cursor-not-allowed">
+                        <span>คำนวณ VAT 7% เพิ่มเติม (ล็อกติ๊กไว้ตลอด)</span>
                     </label>
                     <span id="pay-modal-vat-amount" class="font-bold text-gray-700 text-lg">0.00 ฿</span>
                 </div>
@@ -510,7 +506,7 @@
                     </div>
                     <div class="w-1/2 space-y-1.5 text-xs bg-red-50/50 p-4 rounded-2xl border border-red-100">
                         <div class="flex justify-between"><span>มูลค่าสินค้า (Subtotal):</span> <span id="rec-subtotal" class="font-semibold">0.00</span></div>
-                        <div class="flex justify-between text-red-600"><span>ส่วนลดพิเศษท้ายบิล:</span> <span id="rec-extra-disc" class="font-semibold">0.00</span></div>
+                        <div class="flex justify-between text-red-600"><span>ส่วนลดพิเศษท้ายบิล (2%):</span> <span id="rec-extra-disc" class="font-semibold">0.00</span></div>
                         <div class="flex justify-between"><span>ภาษีมูลค่าเพิ่ม (VAT 7%):</span> <span id="rec-vat" class="font-semibold">0.00</span></div>
                         <div class="flex justify-between items-center text-base font-extrabold text-red-700 border-t border-red-200 pt-2 mt-1">
                             <span>ยอดชำระสุทธิทั้งสิ้น:</span> <span id="rec-net" class="text-lg">0.00 ฿</span>
@@ -776,7 +772,7 @@
                 renderProductTable(productsFromSheet);
                 if(membersData.length > 0) selectMember(0);
             } else {
-                document.getElementById('error-message-text').innerText = "อนุญาตเฉพาะอีเมล Pornpinp@yahool.com และรหัสผ่านถูกต้องเท่านั้น";
+                document.getElementById('error-message-text').innerText = "รหัสผ่านไม่ถูกต้อง กรุณากดขอรับรหัสผ่านใหม่ก่อนเข้าสู่ระบบ";
                 document.getElementById('login-error-alert').classList.remove('hidden');
             }
         }
@@ -791,6 +787,8 @@
                 found.pass = newRandomPass;
                 alert(`[จำลองระบบส่งอีเมลสำเร็จ]\n- เจนรหัสผ่านใหม่ (${newRandomPass}) ส่งไปยัง ${email} สำเร็จ\n- 🚨 ส่งการแจ้งเตือนสำเนาไปที่เมลเถ้าแก่ (pets.station681@gmail.com) เรียบร้อยแล้ว`);
                 document.getElementById('display-user-pass').innerText = newRandomPass;
+                // นำรหัสผ่านใหม่ไปใส่ในช่องล็อกอินให้อัตโนมัติเพื่อความสะดวก
+                document.getElementById('login-pass').value = newRandomPass;
                 switchAuthTab('otp-reset');
             } else {
                 document.getElementById('error-message-text').innerText = "ต้องใช้อีเมล Pornpinp@yahool.com เท่านั้นในการขอรับรหัสใหม่";
@@ -834,8 +832,8 @@
 
             let filtered = productsFromSheet.filter(p => {
                 const matchKeyword = p.code.toLowerCase().includes(keyword) || 
-                                     p.name.toLowerCase().includes(keyword) || 
-                                     p.brand.toLowerCase().includes(keyword);
+                                   p.name.toLowerCase().includes(keyword) || 
+                                   p.brand.toLowerCase().includes(keyword);
                 const matchBrand = selectedBrand === "" || p.brand === selectedBrand;
                 const matchUnit = selectedUnit === "" || p.unit === selectedUnit;
                 return matchKeyword && matchBrand && matchUnit;
@@ -861,8 +859,8 @@
 
                 let filtered = productsFromSheet.filter(p => {
                     const matchKeyword = p.code.toLowerCase().includes(keyword) || 
-                                         p.name.toLowerCase().includes(keyword) || 
-                                         p.brand.toLowerCase().includes(keyword);
+                                       p.name.toLowerCase().includes(keyword) || 
+                                       p.brand.toLowerCase().includes(keyword);
                     const matchBrand = selectedBrand === "" || p.brand === selectedBrand;
                     const matchUnit = selectedUnit === "" || p.unit === selectedUnit;
                     return matchKeyword && matchBrand && matchUnit;
@@ -1097,7 +1095,7 @@
             let defaultDiscount = (subtotal * 2) / 100;
             document.getElementById('pay-modal-extra-discount').value = defaultDiscount.toFixed(2);
             
-            // ล็อกติ๊ก VAT 7% ไว้เสมอ
+            // ล็อกติ๊ก VAT 7% ไว้เสมอ (disabled อยู่แล้ว)
             document.getElementById('pay-modal-vat-checkbox').checked = true;
 
             const radios = document.getElementsByName('payMethod');
@@ -1147,19 +1145,19 @@
         }
 
         function calculateFinalCheckout() {
-            const extraDisc = parseFloat(document.getElementById('pay-modal-extra-discount').value) || 0;
-            const hasVat = document.getElementById('pay-modal-vat-checkbox').checked;
+            // คำนวณส่วนลดท้ายบิล 2% อัตโนมัติจากยอดรวมสินค้า
+            let defaultDiscount = (currentCheckoutSubtotal * 2) / 100;
+            document.getElementById('pay-modal-extra-discount').value = defaultDiscount.toFixed(2);
 
-            let afterExtraDisc = currentCheckoutSubtotal - extraDisc;
+            let afterExtraDisc = currentCheckoutSubtotal - defaultDiscount;
             if (afterExtraDisc < 0) afterExtraDisc = 0;
 
             let vatAmount = 0;
             let finalNet = afterExtraDisc;
 
-            if (hasVat) {
-                vatAmount = afterExtraDisc * 0.07;
-                finalNet = afterExtraDisc + vatAmount;
-            }
+            // บังคับคิด VAT 7% เสมอ
+            vatAmount = afterExtraDisc * 0.07;
+            finalNet = afterExtraDisc + vatAmount;
 
             document.getElementById('pay-modal-vat-amount').innerText = vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }) + " ฿";
             document.getElementById('pay-modal-net').innerText = finalNet.toLocaleString('en-US', { minimumFractionDigits: 2 }) + " ฿";
@@ -1202,18 +1200,6 @@
             } else {
                 warningAlert.classList.add('hidden');
             }
-        }
-
-        function applyPercentDiscount(percent) {
-            if (percent === 0) {
-                document.getElementById('pay-modal-extra-discount').value = 0;
-                calculateFinalCheckout();
-                return;
-            }
-            let subtotal = currentCheckoutSubtotal;
-            let discountAmount = (subtotal * percent) / 100;
-            document.getElementById('pay-modal-extra-discount').value = discountAmount.toFixed(2);
-            calculateFinalCheckout();
         }
 
         function confirmCheckout() {
@@ -1377,7 +1363,7 @@
                 <div>ร้านค้า: ${bill.member}</div>
                 <div class="py-1 border-b">รายการสินค้า:<br>${itemsHtml}</div>
                 <div>ยอดรวม: ${bill.subtotal.toLocaleString()} ฿</div>
-                <div>ส่วนลด: -${bill.totalDiscount.toLocaleString()} ฿</div>
+                <div>ส่วนลด (2%): -${bill.totalDiscount.toLocaleString()} ฿</div>
                 <div>VAT 7%: ${bill.vat.toLocaleString()} ฿</div>
                 <div class="font-bold text-red-700 pt-1 border-t">ยอดสุทธิ: ${bill.net.toLocaleString()} ฿</div>
                 <div>วิธีชำระ: ${bill.payMethod} ${bill.hasSlip ? '(แนบสลิปแล้ว 📸)' : ''}</div>
@@ -1412,7 +1398,7 @@
 
             const noteWrapper = document.getElementById('rec-note-wrapper');
             if (data.note) {
-                document.getElementById('rec-note').innerText = data.note;
+                noteWrapper.innerText = data.note;
                 noteWrapper.classList.remove('hidden');
             } else {
                 noteWrapper.innerText = '- ไม่มีหมายเหตุเพิ่มเติม -';
