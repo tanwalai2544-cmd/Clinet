@@ -375,47 +375,76 @@
                     <input type="text" id="pay-modal-note" placeholder="หมายเหตุคำสั่งซื้อ / ข้อมูลขนส่ง..." class="w-full border border-gray-300 rounded-2xl p-3.5 text-base focus:ring-2 focus:ring-red-500 focus:outline-none shadow-sm">
                 </div>
 
-                <div class="grid grid-cols-4 gap-2 py-1 text-xs font-bold text-center">
-                    <label class="border rounded-2xl p-3 flex flex-col items-center justify-center gap-1 cursor-pointer bg-red-50 border-red-200 text-red-800 shadow-sm">
-                        <input type="radio" name="payMethod" value="transfer" checked onchange="handlePaymentMethodChange()" class="text-red-600"> 📱 โอนผ่านธนาคาร
+                <div class="grid grid-cols-5 gap-1.5 py-1 text-xs font-bold text-center">
+                    <label class="border rounded-xl p-2 flex flex-col items-center justify-center gap-1 cursor-pointer bg-red-50 border-red-200 text-red-800 shadow-sm">
+                        <input type="radio" name="payMethod" value="transfer" checked onchange="handlePaymentMethodChange()" class="text-red-600"> 📱 โอนธนาคาร
                     </label>
-                    <label class="border rounded-2xl p-3 flex flex-col items-center justify-center gap-1 cursor-pointer bg-gray-50 hover:bg-gray-100 transition shadow-sm">
-                        <input type="radio" name="payMethod" value="cash" onchange="handlePaymentMethodChange()" class="text-red-600"> 💵 ชำระเงินสดหน้าคลัง
+                    <label class="border rounded-xl p-2 flex flex-col items-center justify-center gap-1 cursor-pointer bg-gray-50 hover:bg-gray-100 transition shadow-sm">
+                        <input type="radio" name="payMethod" value="cash" onchange="handlePaymentMethodChange()" class="text-red-600"> 💵 เงินสดหน้าคลัง
                     </label>
-                    <label class="border rounded-2xl p-3 flex flex-col items-center justify-center gap-1 cursor-pointer bg-gray-50 hover:bg-gray-100 transition shadow-sm">
+                    <label class="border rounded-xl p-2 flex flex-col items-center justify-center gap-1 cursor-pointer bg-gray-50 hover:bg-gray-100 transition shadow-sm">
                         <input type="radio" name="payMethod" value="debt" onchange="handlePaymentMethodChange()" class="text-red-600"> 📋 วางบิล (Credit)
                     </label>
-                    <label class="border rounded-2xl p-3 flex flex-col items-center justify-center gap-1 cursor-pointer bg-gray-50 hover:bg-gray-100 transition shadow-sm">
+                    <label class="border rounded-xl p-2 flex flex-col items-center justify-center gap-1 cursor-pointer bg-gray-50 hover:bg-gray-100 transition shadow-sm">
                         <input type="radio" name="payMethod" value="qr" onchange="handlePaymentMethodChange()" class="text-red-600"> 🔲 QR PromptPay
+                    </label>
+                    <label class="border rounded-xl p-2 flex flex-col items-center justify-center gap-1 cursor-pointer bg-gray-50 hover:bg-gray-100 transition shadow-sm">
+                        <input type="radio" name="payMethod" value="mixed" onchange="handlePaymentMethodChange()" class="text-red-600"> 🔀 โอนผสมสด
                     </label>
                 </div>
 
-                <!-- QR Code Box / Bank Account Information -->
-                <div id="payment-qr-box" class="bg-gray-50 border border-gray-200 p-4 rounded-2xl text-center space-y-2 shadow-inner">
-                    <p class="font-bold text-sm text-gray-800">🏦 โอนชำระบัญชีร้านค้าสถานีสัตว์เลี้ยงTH</p>
-                    <p class="text-xs text-gray-600">ธนาคารกสิกรไทย (KBank) • เลขที่บัญชี: <span class="font-bold text-red-700">123-4-56789-0</span></p>
-                    <div class="bg-white p-3 rounded-xl inline-block border shadow-sm">
-                        <div class="text-xs font-mono text-gray-500">[ สแกน QR ชำระเงินผ่านแอปธนาคาร ]</div>
-                        <div class="text-2xl my-1">📷 QR CODE READY</div>
+                <!-- QR Code Box / Bank Account Information + File Upload -->
+                <div id="payment-qr-box" class="bg-gray-50 border border-gray-200 p-4 rounded-2xl text-center space-y-3 shadow-inner">
+                    <div>
+                        <p class="font-bold text-sm text-gray-800">🏦 โอนชำระบัญชีร้านค้าสถานีสัตว์เลี้ยงTH</p>
+                        <p class="text-xs text-gray-600 mt-0.5">ธนาคารกสิกรไทย (KBank) • เลขที่บัญชี: <span class="font-bold text-red-700">123-4-56789-0</span></p>
                     </div>
-                    <p class="text-[11px] text-gray-500">กรุณาแนบสลิปโอนเงินหลังจากยืนยันคำสั่งซื้อ</p>
+                    <div class="bg-white p-2 rounded-xl inline-block border shadow-sm">
+                        <div class="text-[11px] font-mono text-gray-500">[ สแกน QR โอนชำระเงิน ]</div>
+                        <div class="text-xl my-0.5 font-extrabold text-red-600">QR CODE READY</div>
+                    </div>
+                    <!-- ช่องเพิ่มไฟล์รูปภาพสลิป -->
+                    <div class="text-left bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">📸 แนบหลักฐานสลิปโอนเงิน (Slip Image):</label>
+                        <input type="file" id="payment-slip-file" accept="image/*" class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer">
+                    </div>
                 </div>
 
                 <div class="pt-1">
                     <div id="single-receive-box" class="hidden">
                         <label id="receive-label-title" class="block text-sm font-bold text-gray-700 mb-1">รับเงิน</label>
-                        <input type="number" id="pay-modal-received" oninput="calculateChange()" step="0.01" class="w-full border border-gray-300 rounded-2xl p-4 text-xl font-bold focus:ring-2 focus:ring-red-500 focus:outline-none shadow-sm" value="0">
+                        <input type="number" id="pay-modal-received" readonly step="0.01" class="w-full border border-gray-300 bg-gray-100 rounded-2xl p-3.5 text-xl font-bold text-gray-700 cursor-not-allowed shadow-sm" value="0">
                     </div>
+
+                    <!-- ช่องกรอกโอนผสมสด -->
+                    <div id="mixed-receive-box" class="hidden space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">💵 เงินสดที่ชำระ (บาท)</label>
+                                <input type="number" id="pay-mixed-cash" oninput="calculateMixedChange()" step="0.01" class="w-full border border-gray-300 rounded-2xl p-3 text-base font-bold focus:ring-2 focus:ring-red-500 focus:outline-none shadow-sm" value="0">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">📱 เงินโอนที่ชำระ (บาท)</label>
+                                <input type="number" id="pay-mixed-transfer" oninput="calculateMixedChange()" step="0.01" class="w-full border border-gray-300 rounded-2xl p-3 text-base font-bold focus:ring-2 focus:ring-red-500 focus:outline-none shadow-sm" value="0">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">📸 แนบหลักฐานสลิปโอนเงิน (ส่วนโอน):</label>
+                            <input type="file" id="mixed-slip-file" accept="image/*" class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer">
+                        </div>
+                    </div>
+
                     <div id="payment-warning-alert" class="hidden mt-2 p-3 text-sm font-bold rounded-2xl text-center border shadow-sm"></div>
                 </div>
 
-                <div class="flex items-center justify-between pt-2">
-                    <select id="print-option-select" class="border border-gray-300 rounded-xl px-4 py-3 text-sm bg-white text-gray-700 font-semibold shadow-sm">
+                <!-- ปุ่มยืนยันการจ่ายเงิน ปรับขนาดให้สมดุลไม่ใหญ่จนเกินไป -->
+                <div class="flex items-center justify-between pt-3 border-t">
+                    <select id="print-option-select" class="border border-gray-300 rounded-xl px-3 py-2.5 text-xs bg-white text-gray-700 font-semibold shadow-sm">
                         <option value="noprint">ไม่พิมพ์ใบสั่งซื้อ</option>
                         <option value="print">พิมพ์ใบสั่งซื้ออัตโนมัติ</option>
                     </select>
-                    <button onclick="confirmCheckout()" class="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold px-10 py-4 rounded-2xl shadow-lg shadow-red-600/35 transition text-lg flex items-center gap-2">
-                        <span>💾</span> ยืนยันการจ่ายเงิน & ส่งคำสั่งซื้อ
+                    <button onclick="confirmCheckout()" class="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold px-6 py-3 rounded-2xl shadow-md transition text-base flex items-center gap-2">
+                        <span>💾</span> ยืนยันการจ่ายเงิน
                     </button>
                 </div>
             </div>
@@ -456,6 +485,7 @@
 
                 <div class="space-y-0.5 text-[11px] text-gray-600 pt-1">
                     <div class="flex justify-between"><span>วิธีชำระ:</span> <span id="rec-pay-method">โอนผ่านธนาคาร</span></div>
+                    <div id="rec-slip-info" class="hidden text-emerald-700 font-bold">✔️ แนบหลักฐานสลิปแล้ว</div>
                     <div id="rec-note-wrapper" class="hidden text-gray-500 italic pt-1">หมายเหตุ: <span id="rec-note"></span></div>
                 </div>
 
@@ -704,7 +734,7 @@
                 document.getElementById('app-staff-content').classList.remove('hidden');
                 updateLiveTimestamp();
                 renderProductTable(productsFromSheet);
-                if(membersData.length > 0) selectMember(0); // เลือกโปรไฟล์ร้านแรกอัตโนมัติ
+                if(membersData.length > 0) selectMember(0);
             } else {
                 document.getElementById('error-message-text').innerText = "อนุญาตเฉพาะอีเมล Pornpinp@yahool.com และรหัสผ่านถูกต้องเท่านั้น";
                 document.getElementById('login-error-alert').classList.remove('hidden');
@@ -1045,20 +1075,31 @@
             const selectedMethod = document.querySelector('input[name="payMethod"]:checked').value;
             const qrBox = document.getElementById('payment-qr-box');
             const singleBox = document.getElementById('single-receive-box');
+            const mixedBox = document.getElementById('mixed-receive-box');
             const recLabel = document.getElementById('receive-label-title');
             const recInput = document.getElementById('pay-modal-received');
             const finalNet = parseFloat(document.getElementById('pay-modal-net').innerText.replace(/,/g, '').replace(' ฿', '')) || 0;
 
+            qrBox.classList.add('hidden');
+            singleBox.classList.add('hidden');
+            mixedBox.classList.add('hidden');
+
             if (selectedMethod === 'transfer' || selectedMethod === 'qr') {
                 qrBox.classList.remove('hidden');
-                singleBox.classList.add('hidden');
-            } else {
-                qrBox.classList.add('hidden');
+            } else if (selectedMethod === 'cash') {
                 singleBox.classList.remove('hidden');
-                recLabel.innerText = "รับเงินสดหน้าคลัง";
+                recLabel.innerText = "รับเงินสดหน้าคลัง (ล็อกยอดอัตโนมัติ)";
                 recInput.value = finalNet.toFixed(2);
+            } else if (selectedMethod === 'debt') {
+                singleBox.classList.remove('hidden');
+                recLabel.innerText = "ยอดวางบิลเครดิต (ล็อกยอดอัตโนมัติ)";
+                recInput.value = finalNet.toFixed(2);
+            } else if (selectedMethod === 'mixed') {
+                mixedBox.classList.remove('hidden');
+                document.getElementById('pay-mixed-cash').value = 0;
+                document.getElementById('pay-mixed-transfer').value = finalNet.toFixed(2);
             }
-            calculateChange();
+            calculateMixedChange();
         }
 
         function calculateFinalCheckout() {
@@ -1078,10 +1119,45 @@
 
             document.getElementById('pay-modal-vat-amount').innerText = vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }) + " ฿";
             document.getElementById('pay-modal-net').innerText = finalNet.toLocaleString('en-US', { minimumFractionDigits: 2 }) + " ฿";
+
+            const selectedMethod = document.querySelector('input[name="payMethod"]:checked').value;
+            if (selectedMethod === 'cash' || selectedMethod === 'debt') {
+                document.getElementById('pay-modal-received').value = finalNet.toFixed(2);
+            } else if (selectedMethod === 'mixed') {
+                document.getElementById('pay-mixed-transfer').value = finalNet.toFixed(2);
+                document.getElementById('pay-mixed-cash').value = 0;
+            }
+            calculateMixedChange();
         }
 
-        function calculateChange() {
-            // ฟังก์ชันคำนวณการชำระเงิน
+        function calculateMixedChange() {
+            const finalNet = parseFloat(document.getElementById('pay-modal-net').innerText.replace(/,/g, '').replace(' ฿', '')) || 0;
+            const selectedMethod = document.querySelector('input[name="payMethod"]:checked').value;
+            const warningAlert = document.getElementById('payment-warning-alert');
+
+            if (selectedMethod === 'mixed') {
+                const cashPart = parseFloat(document.getElementById('pay-mixed-cash').value) || 0;
+                const transferPart = parseFloat(document.getElementById('pay-mixed-transfer').value) || 0;
+                const totalPaid = cashPart + transferPart;
+                const diff = totalPaid - finalNet;
+
+                if (diff < 0) {
+                    let shortage = Math.abs(diff);
+                    warningAlert.innerText = `⚠️ ยอดเงินไม่พอ ขาดอีก ${shortage.toLocaleString('en-US', { minimumFractionDigits: 2 })} บาท`;
+                    warningAlert.className = "mt-2 p-3 text-xs font-bold rounded-2xl text-center border bg-red-100 text-red-800 border-red-300 shadow-sm";
+                    warningAlert.classList.remove('hidden');
+                } else if (diff > 0) {
+                    warningAlert.innerText = `⚠️ ยอดเงินเกินมา ${diff.toLocaleString('en-US', { minimumFractionDigits: 2 })} บาท (เงินทอน)`;
+                    warningAlert.className = "mt-2 p-3 text-xs font-bold rounded-2xl text-center border bg-amber-100 text-amber-900 border-amber-300 shadow-sm";
+                    warningAlert.classList.remove('hidden');
+                } else {
+                    warningAlert.innerText = `✅ ยอดชำระถูกต้องพอดี`;
+                    warningAlert.className = "mt-2 p-3 text-xs font-bold rounded-2xl text-center border bg-emerald-100 text-emerald-900 border-emerald-300 shadow-sm";
+                    warningAlert.classList.remove('hidden');
+                }
+            } else {
+                warningAlert.classList.add('hidden');
+            }
         }
 
         function applyPercentDiscount(percent) {
@@ -1100,6 +1176,16 @@
             const finalNetStr = document.getElementById('pay-modal-net').innerText.replace(/,/g, '').replace(' ฿', '');
             const finalNet = parseFloat(finalNetStr) || 0;
             const selectedMethod = document.querySelector('input[name="payMethod"]:checked').value;
+
+            if (selectedMethod === 'mixed') {
+                const cashPart = parseFloat(document.getElementById('pay-mixed-cash').value) || 0;
+                const transferPart = parseFloat(document.getElementById('pay-mixed-transfer').value) || 0;
+                const totalPaid = cashPart + transferPart;
+                if (totalPaid < finalNet) {
+                    alert('⚠️ ยอดเงินชำระแบบผสมยังไม่ครบตามยอดสุทธิ กรุณาตรวจสอบอีกครั้ง');
+                    return;
+                }
+            }
 
             const now = new Date();
             const yearStr = now.getFullYear().toString();
@@ -1123,6 +1209,11 @@
             let totalCartDiscount = cartItems.reduce((acc, item) => acc + ((item.originalPrice || item.price) - item.price) * item.qty, 0);
             let totalOverallDiscount = totalCartDiscount + extraDisc;
 
+            let hasSlipAttached = (selectedMethod === 'transfer' || selectedMethod === 'qr') && document.getElementById('payment-slip-file').files.length > 0;
+            if (selectedMethod === 'mixed' && document.getElementById('mixed-slip-file').files.length > 0) {
+                hasSlipAttached = true;
+            }
+
             let lastTransactionReceiptData = {
                 date: dateStr,
                 time: timeStr,
@@ -1137,6 +1228,7 @@
                 hasVat: hasVat,
                 net: finalNet,
                 payMethod: selectedMethod,
+                hasSlip: hasSlipAttached,
                 note: noteText,
                 status: 'รอตรวจสอบสลิป/จัดส่ง'
             };
@@ -1150,7 +1242,7 @@
             if (printOption === 'print') {
                 openReceiptModal(lastTransactionReceiptData);
             } else {
-                alert(`ส่งคำสั่งซื้อสำเร็จเรียบร้อย!\n- เลขที่คำสั่งซื้อ: ${generatedOrderId}\n- ยอดชำระ: ${finalNet.toLocaleString()} บาท`);
+                alert(`ส่งคำสั่งซื้อสำเร็จเรียบร้อย!\n- เลขที่คำสั่งซื้อ: ${generatedOrderId}\n- ยอดชำระ: ${finalNet.toLocaleString()} บาท ${hasSlipAttached ? '(แนบสลิปเรียบร้อย)' : ''}`);
             }
         }
 
@@ -1205,7 +1297,7 @@
                 return;
             }
 
-            const methodMap = { transfer: 'โอนผ่านธนาคาร', cash: 'เงินสด', debt: 'วางบิล', qr: 'QR PromptPay' };
+            const methodMap = { transfer: 'โอนธนาคาร', cash: 'เงินสด', debt: 'วางบิล', qr: 'QR PromptPay', mixed: 'โอนผสมสด' };
 
             filtered.forEach((bill) => {
                 const globalIdx = completedSalesBills.indexOf(bill);
@@ -1217,7 +1309,7 @@
                     <td class="p-3.5"><div class="font-bold font-mono text-gray-900">${bill.taxId}</div><div class="text-xs text-gray-500">${bill.date} ${bill.time}</div></td>
                     <td class="p-3.5 font-semibold text-gray-800">${bill.member}</td>
                     <td class="p-3.5 text-xs text-gray-700 max-w-xs truncate" title="${itemNamesSummary}">${itemNamesSummary}</td>
-                    <td class="p-3.5 text-center"><span class="bg-gray-100 px-2 py-1 rounded text-xs font-semibold">${methodMap[bill.payMethod] || bill.payMethod}</span></td>
+                    <td class="p-3.5 text-center"><span class="bg-gray-100 px-2 py-1 rounded text-xs font-semibold">${methodMap[bill.payMethod] || bill.payMethod} ${bill.hasSlip ? '📸' : ''}</span></td>
                     <td class="p-3.5 text-right font-bold text-gray-900">${bill.net.toLocaleString('en-US', { minimumFractionDigits: 2 })} ฿</td>
                     <td class="p-3.5 text-center">
                         <button onclick="viewBillDetail(${globalIdx})" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-xl text-xs font-bold transition">ดูบิล</button>
@@ -1244,7 +1336,7 @@
                 <div>ส่วนลด: -${bill.totalDiscount.toLocaleString()} ฿</div>
                 <div>VAT 7%: ${bill.vat.toLocaleString()} ฿</div>
                 <div class="font-bold text-red-700 pt-1 border-t">ยอดสุทธิ: ${bill.net.toLocaleString()} ฿</div>
-                <div>วิธีชำระ: ${bill.payMethod}</div>
+                <div>วิธีชำระ: ${bill.payMethod} ${bill.hasSlip ? '(แนบสลิปแล้ว 📸)' : ''}</div>
                 ${bill.note ? `<div>หมายเหตุ: ${bill.note}</div>` : ''}
             `;
             document.getElementById('bill-detail-modal').classList.remove('hidden');
@@ -1264,8 +1356,15 @@
             document.getElementById('rec-vat').innerText = data.vat.toLocaleString('en-US', { minimumFractionDigits: 2 }) + ' ฿';
             document.getElementById('rec-net').innerText = data.net.toLocaleString('en-US', { minimumFractionDigits: 2 }) + ' ฿';
             
-            const methodMap = { transfer: 'โอนผ่านธนาคาร', cash: 'เงินสด', debt: 'วางบิล', qr: 'QR PromptPay' };
+            const methodMap = { transfer: 'โอนธนาคาร', cash: 'เงินสด', debt: 'วางบิล', qr: 'QR PromptPay', mixed: 'โอนผสมสด' };
             document.getElementById('rec-pay-method').innerText = methodMap[data.payMethod] || data.payMethod;
+
+            const slipInfoElem = document.getElementById('rec-slip-info');
+            if (data.hasSlip) {
+                slipInfoElem.classList.remove('hidden');
+            } else {
+                slipInfoElem.classList.add('hidden');
+            }
 
             const noteWrapper = document.getElementById('rec-note-wrapper');
             if (data.note) {
