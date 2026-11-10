@@ -492,7 +492,7 @@
                 
                 let stockBadge = p.stock > 0 
                     ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-lg text-[10px] font-bold">สต๊อกคงเหลือ: ${p.stock} ${p.unit}</span>`
-                    : `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-[10px] font-bold">หมดสต๊อก (สั่งเป็นคงค้าง)</span>`;
+                    : `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-[10px] font-bold">หมดสต๊อก</span>`;
 
                 card.innerHTML = `
                     <div class="pr-2 w-full sm:w-auto">
@@ -515,43 +515,20 @@
             });
         }
 
+        // ปรับแก้: สั่งเกินสต๊อกให้คิดราคาตามจำนวนที่กดสั่งซื้อจริงทั้งหมดทันที
         function addCatalogProductToCart(code, name, price, stock, unit, isBackorderFlag) {
             const qtyInput = document.getElementById(`catalog-qty-${code}`);
             const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
-            
-            let finalQty = qty;
-            let backorderQty = 0;
 
-            if(isBackorderFlag === 0) {
-                if(qty > stock) {
-                    backorderQty = qty - stock;
-                    finalQty = stock;
-                    alert(`⚠️ แจ้งเตือนสต๊อก:\nสินค้า "${name}" มีในสต๊อกเพียง ${stock} ${unit}\n- ระบบบันทึก ${stock} ${unit} เป็นรายการซื้อปกติ\n- แยกจำนวน ${backorderQty} ${unit} เป็น "สินค้าคงค้างส่ง (Backorder)" อัตโนมัติ`);
-                }
+            if(isBackorderFlag === 0 && qty > stock) {
+                alert(`⚠️ แจ้งเตือนสต๊อก:\nสินค้า "${name}" มีในสต๊อกเพียง ${stock} ${unit} (ท่านสั่ง ${qty} ${unit})\n- ระบบอนุญาตให้สั่งซื้อตามจำนวนที่ท่านต้องการ (${qty} ${unit}) และคิดราคาปกติทั้งหมดครับ`);
+            }
+
+            const ex = cartItems.find(i => i.code === code && i.isBackorder === isBackorderFlag);
+            if(ex) {
+                ex.qty = qty;
             } else {
-                finalQty = qty;
-                backorderQty = 0;
-            }
-
-            if(finalQty > 0) {
-                const ex = cartItems.find(i => i.code === code && i.isBackorder === 0);
-                if(ex) {
-                    ex.qty = finalQty;
-                } else {
-                    cartItems.push({ code, name, price, qty: finalQty, unit, isBackorder: 0 });
-                }
-            }
-
-            if(backorderQty > 0) {
-                backorderItems.push({
-                    code,
-                    name: `${name} (คงค้างส่ง)`,
-                    price,
-                    qty: backorderQty,
-                    unit,
-                    date: new Date().toLocaleDateString('th-TH')
-                });
-                updateBackorderBadge();
+                cartItems.push({ code, name, price, qty: qty, unit, isBackorder: isBackorderFlag });
             }
 
             renderCart();
@@ -773,7 +750,6 @@
             document.getElementById('receipt-modal-preview').classList.remove('hidden');
         }
 
-        // ฟังก์ชันเปิดดูบิลย้อนหลังตาม Index ในประวัติ
         function openHistoricalReceipt(index) {
             const bill = completedSalesBills[index];
             if(!bill) return;
@@ -1020,11 +996,10 @@
                 return; 
             }
             completedSalesBills.forEach((b, idx) => {
-                let hasBackorderNote = b.items.some(i => i.isBackorder === 1) ? '<br><span class="text-[10px] text-amber-600 font-bold">⏳ มีรายการสินค้าคงค้างส่ง</span>' : '';
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-red-50/50 transition cursor-pointer" onclick="openHistoricalReceipt(${idx})">
                         <td class="p-3 font-mono font-bold text-red-700 underline">${b.taxId}<br><span class="text-[10px] text-gray-400 font-normal">${b.date}</span></td>
-                        <td class="p-3 font-medium text-gray-900 underline hover:text-red-600">${b.member} ${hasBackorderNote}</td>
+                        <td class="p-3 font-medium text-gray-900 underline hover:text-red-600">${b.member}</td>
                         <td class="p-3 text-right font-black text-red-700">${b.net.toLocaleString()} ฿</td>
                     </tr>
                 `;
